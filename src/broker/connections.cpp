@@ -60,9 +60,17 @@ void Connections::_check_new_messages(){
 	}
 }
 
+enum MESSAGE_IDS{
+	DISCONNECT = 1,
+};
+
 void Connections::_process_message(int id, std::vector<std::string> message){
-	for( auto s : message){
-		debug("%d %s",id, s.c_str());
+	switch(atoi(message[0].c_str())){
+		case DISCONNECT:
+			_disconnect_node(id);
+			break;
+		default:
+			log_err("Unknown message: %d - %s", id, [](std::vector<std::string> s){std::stringstream ss; for( auto c : s){ ss<<c.c_str()<<" "; } return ss.str().c_str(); }(message));
 	}
 }
 
