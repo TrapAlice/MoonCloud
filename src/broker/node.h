@@ -14,4 +14,5 @@ private:
 	int        _id;
 	IPaddress *_remote_ip;
 	TCPsocket  _client;
+	int        _status;
 };
