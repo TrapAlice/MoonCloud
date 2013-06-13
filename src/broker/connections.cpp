@@ -1,16 +1,19 @@
 #include "connections.h"
 #include "../dbg.h"
 #include "node.h"
+#include <string.h>
+#include <sstream>
+#include <iterator>
 
-Connections::Connections(){
-
+Connections::Connections(std::map<int, Node*> *nodes){
+	_connected_nodes = nodes;
 }
 
 Connections::~Connections(){
-	for( auto i : _connected_nodes ){
-		delete i;
-	}
-	_connected_nodes.clear();
+	//for( auto i : _connected_nodes ){
+	//	delete i;
+	//}
+	//_connected_nodes.clear();
 }
 
 void Connections::Open(int port){
@@ -19,18 +22,54 @@ void Connections::Open(int port){
 	log_info("Conncetions Manager opened on port: %d", port);
 }
 
+void Connections::Close(){
+	SDLNet_TCP_Close(_server);
+	log_info("Connections Manager closed");
+}
+
 void Connections::Tick(){
+	_check_new_connections();
+	_check_new_messages();
+}
+
+void Connections::_check_new_connections(){
 	TCPsocket client;
 	if( (client = SDLNet_TCP_Accept(_server)) ){
 		IPaddress *remote_ip = SDLNet_TCP_GetPeerAddress(client);
 		Node *node = new Node(_node_number, client, remote_ip);
-		_connected_nodes[_node_number] = node;
+		_connected_nodes->insert(std::pair<int, Node*>(_node_number, node));
 		log_info("Node %d has connected: %x : %d", node->Id(), node->Host(), node->Port());
 		_node_number++;
 	}
 }
 
-void Connections::Close(){
-	SDLNet_TCP_Close(_server);
-	log_info("Connections Manager closed");
+void Connections::_check_new_messages(){
+	char buffer[512];
+	for( auto& client : *_connected_nodes ){
+		memset(buffer, 0, 512);
+		if (SDLNet_TCP_Recv(client.second->Socket(), buffer, 512) > 0){
+			auto s = std::string(buffer);
+			std::stringstream ss(s);
+			std::istream_iterator<std::string> begin(ss);
+			std::istream_iterator<std::string> end;
+			std::vector<std::string> vstrings(begin, end);
+			_process_message(client.first, vstrings);
+		} else {
+			_disconnect_node(client.first);
+		}
+	}
 }
+
+void Connections::_process_message(int id, std::vector<std::string> message){
+	for( auto s : message){
+		debug("%d %s",id, s.c_str());
+	}
+}
+
+void Connections::_disconnect_node(int id){
+	auto& node = _connected_nodes->at(id);
+	delete node;
+	_connected_nodes->erase(id);
+	log_info("Node %d disconnected", id);
+}
+
