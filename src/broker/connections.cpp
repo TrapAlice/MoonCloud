@@ -1,6 +1,7 @@
 #include "connections.h"
 #include "../dbg.h"
 #include "../messageid.h"
+#include "../util.h"
 #include "node.h"
 #include "taskmanager.h"
 #include <string.h>
@@ -40,7 +41,11 @@ void Connections::Tick(){
 
 void Connections::SendMessage(int id, std::string message){
 	debug("Message sent: %d:%s", id, message.c_str());
-	SDLNet_TCP_Send(_connected_nodes->at(id)->Socket(), (void *)(message.c_str()), message.length());
+	//SDLNet_TCP_Send(_connected_nodes->at(id)->Socket(), (void *)(message.c_str()), message.length());
+	std::stringstream ss;
+	ss<<message.length()<< " "<< message;
+	//debug("Message sent: %s", ss.str().c_str());
+	SDLNet_TCP_Send(_connected_nodes->at(id)->Socket(), (void *)(ss.str().c_str()), ss.str().length());
 }
 
 void Connections::_check_new_connections(){
@@ -77,6 +82,16 @@ void Connections::_check_new_messages(){
 
 
 void Connections::_process_message(int id, std::vector<std::string> message){
+	debug("Message received: %s", [message](){std::stringstream ss; for( auto c : message){ ss<<c.c_str()<<" "; } return ss.str().c_str(); }());
+	if( message.size() == 0 ) return;
+	int size = atoi(message[0].c_str());
+	message = SplitFrom(1, message);
+	std::string temp_string = Pack(message);
+	std::string remaining;
+	if( size != temp_string.length() ) remaining = temp_string.substr(size);
+	temp_string = temp_string.substr(0,size);
+	message.clear();
+	message = Split(temp_string);
 	debug("Message received: %d:%s", id, [message](){std::stringstream ss; for( auto c : message){ ss<<c.c_str()<<" "; } return ss.str().c_str(); }());
 	if( message.size() == 0 ) return;
 	switch(atoi(message[0].c_str())){
@@ -113,6 +128,9 @@ void Connections::_process_message(int id, std::vector<std::string> message){
 			break;
 		default:
 			log_err("Unknown message: %d - %s", id, [message](){std::stringstream ss; for( auto c : message){ ss<<c.c_str()<<" "; } return ss.str().c_str(); }());
+	}
+	if( remaining.size() > 1 ){
+		_process_message(id, Split(remaining));
 	}
 }
 

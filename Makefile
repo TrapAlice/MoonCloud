@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-c -Wall -ISDL -g -std=c++11 -TCP_DELAY
+CFLAGS=-c -Wall -ISDL -g -std=c++11
 LDFLAGS= -lSDL -lSDL_net
 BROKER_SOURCES=$(wildcard src/broker/*.cpp)
 BROKER_OBJECTS=$(BROKER_SOURCES:.cpp=.o)

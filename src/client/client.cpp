@@ -1,6 +1,7 @@
 #include "client.h"
 #include "../dbg.h"
 #include "../messageid.h"
+#include "../util.h"
 #include <sstream>
 #include <iterator>
 
@@ -25,24 +26,24 @@ void Client::GetIdleNode(){
 
 int Client::GetJobId(int amount, int type){
 	std::stringstream s;
-	s << JOB_REQUEST<<" " << 0<<" " << amount<<" " << type;
+	s << JOB_REQUEST<<" " << 0<<" " << amount<<" " << type<<" ";
 	_send_message(s.str());
 	std::string jobId = _receive_message();
 	std::stringstream ss(jobId);
 	std::istream_iterator<std::string> begin(ss);
 	std::istream_iterator<std::string> end;
 	std::vector<std::string> vstrings(begin, end);
-	return atoi(vstrings[1].c_str());
+	return atoi(vstrings[2].c_str());
 }
 
 void Client::ProcessTask(int jobId, std::string file, std::string data){
 	std::stringstream ss;
-	ss << JOB_REQUEST <<" "<< 1 <<" "<< jobId <<" "<< file <<" "<< data;
+	ss << JOB_REQUEST <<" "<< 1 <<" "<< jobId <<" "<< file <<" "<< data<<" ";
 	_send_message(ss.str());
 }
 
 std::string Client::GetResults(){
-	return _receive_message();
+	return Pack(SplitFrom(1,Split(_receive_message())));
 }
 
 void Client::CloseConnection(){
@@ -59,6 +60,9 @@ std::string Client::_receive_message(){
 }
 
 void Client::_send_message(std::string message){
-	debug("Message sent: %s", message.c_str());
-	SDLNet_TCP_Send(_node_socket, (void *)(message.c_str()), message.length());
+	//debug("Message sent: %s", message.c_str());
+	std::stringstream ss;
+	ss<<message.length()<< " "<< message;
+	debug("Message sent: %s", ss.str().c_str());
+	SDLNet_TCP_Send(_node_socket, (void *)(ss.str().c_str()), ss.str().length());
 }
