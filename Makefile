@@ -23,12 +23,22 @@ $(NODE_EXECUTABLE): $(NODE_OBJECTS)
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@
 
-clean: clean-objects clean-executable
+clean: clean-broker clean-node
 
-clean-objects:
+clean-broker: clean-broker-objects clean-broker-executable
+
+clean-node: clean-node-objects clean-node-executable
+
+clean-broker-objects:
 	-rm src/broker/*.o
 
-clean-executable:
+clean-broker-executable:
 	-rm $(BROKER_EXECUTABLE)
+
+clean-node-objects:
+	-rm src/node/*.o
+
+clean-node-executable:
+	-rm $(NODE_EXECUTABLE)
 
 rebuild: clean all
