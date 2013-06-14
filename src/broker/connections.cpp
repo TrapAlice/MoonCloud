@@ -1,5 +1,6 @@
 #include "connections.h"
 #include "../dbg.h"
+#include "../messageid.h"
 #include "node.h"
 #include "taskmanager.h"
 #include <string.h>
@@ -13,10 +14,6 @@ Connections::Connections(std::map<int, Node*> *nodes){
 
 Connections::~Connections(){
 	SDLNet_FreeSocketSet(_set);
-	//for( auto i : _connected_nodes ){
-	//	delete i;
-	//}
-	//_connected_nodes.clear();
 }
 
 void Connections::Open(int port){
@@ -76,17 +73,7 @@ void Connections::_check_new_messages(){
 	}
 }
 
-enum MESSAGE_IDS{
-	DISCONNECT = 1,
-	JOB_REQUEST,
-	JOB_RESPONSE,
-	SET_STATUS_ACTIVE,
-	SET_STATUS_IDLE,
-	SET_STATUS_BUSY,
-	GET_IDLE_NODE,
-	CLOSE = 100,
-	NODE_STATUS,
-};
+
 
 void Connections::_process_message(int id, std::vector<std::string> message){
 	if( message.size() == 0 ) return;
@@ -117,9 +104,9 @@ void Connections::_process_message(int id, std::vector<std::string> message){
 			_shutdown = true;
 			break;
 		case NODE_STATUS:
-		log_info("NODE \t Status");
+		log_info("NODE \t Status \t Host \t Port");
 			for( auto& node : *_connected_nodes ){
-				log_info("%d \t %d",node.second->Id(), node.second->Status());
+				log_info("%d \t %d \t %x \t %d",node.second->Id(), node.second->Status(), node.second->Host(), node.second->Port());
 			}
 			break;
 		default:

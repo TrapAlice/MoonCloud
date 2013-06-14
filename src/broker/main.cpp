@@ -1,7 +1,9 @@
 #include "../dbg.h"
 #include "connections.h"
 #include "taskmanager.h"
+#include "node.h"
 #include <map>
+#include "SDL/SDL_net.h"
 
 int main(int argc, char* argv[]){
 	SDLNet_Init();
@@ -18,5 +20,10 @@ int main(int argc, char* argv[]){
 	c->Close();
 	delete t;
 	delete c;
+	for( auto& node : *_node_map ){
+		delete node.second;
+	}
+	_node_map->clear();
+	delete _node_map;
 	SDLNet_Quit();
 }
