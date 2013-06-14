@@ -62,6 +62,12 @@ void Connections::_check_new_messages(){
 
 enum MESSAGE_IDS{
 	DISCONNECT = 1,
+	JOB_REQUEST,
+	JOB_RESPONSE,
+	STATUS_ACTIVE,
+	STATUS_IDLE,
+	STATUS_BUSY,
+	GET_IDLE_NODE,
 };
 
 void Connections::_process_message(int id, std::vector<std::string> message){
@@ -70,7 +76,7 @@ void Connections::_process_message(int id, std::vector<std::string> message){
 			_disconnect_node(id);
 			break;
 		default:
-			log_err("Unknown message: %d - %s", id, [](std::vector<std::string> s){std::stringstream ss; for( auto c : s){ ss<<c.c_str()<<" "; } return ss.str().c_str(); }(message));
+			log_err("Unknown message: %d - %s", id, [message](){std::stringstream ss; for( auto c : message){ ss<<c.c_str()<<" "; } return ss.str().c_str(); }());
 	}
 }
 
