@@ -42,3 +42,5 @@ std::string TaskGroup::Results(){
 	}
 	return ss.str();
 }
+
+int TaskGroup::Id(){ return _id; }

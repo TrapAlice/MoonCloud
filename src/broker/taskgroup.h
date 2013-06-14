@@ -13,6 +13,7 @@ public:
 	bool isOwner(Task *task);
 	bool isComplete();
 	std::string Results();
+	int Id();
 private:
 	std::vector<Task*> _tasks;
 	int _type;
