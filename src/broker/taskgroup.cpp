@@ -40,7 +40,7 @@ bool TaskGroup::isComplete(){
 std::string TaskGroup::Results(){
 	std::stringstream ss;
 	for( auto t : _tasks ) {
-		ss << t->Result() << " ";
+		ss << t->Result();
 	}
 	return ss.str();
 }

@@ -3,6 +3,7 @@
 #include <iterator>
 #include "../dbg.h"
 #include "../messageid.h"
+#include "../util.h"
 #include <string.h>
 #include "task.h"
 
@@ -89,6 +90,16 @@ void Node::_check_new_messages(){
 }
 
 void Node::_process_message(std::vector<std::string> message){
+	if( message.size() == 0 ) return;
+	unsigned int size = atoi(message[0].c_str());
+	message = SplitFrom(1, message);
+	std::string temp_string = Pack(message);
+	std::string remaining;
+	if( size != temp_string.length() ) remaining = temp_string.substr(size);
+	temp_string = temp_string.substr(0,size);
+	message.clear();
+	message = Split(temp_string);
+
 	debug("Message received: %s", [message](){std::stringstream ss; for( auto c : message){ ss<<c.c_str()<<" "; } return ss.str().c_str(); }());
 	if( message.size() == 0 ) return;
 	switch( atoi(message[0].c_str()) ){
@@ -135,11 +146,17 @@ void Node::_process_message(std::vector<std::string> message){
 		default:
 			log_err("Unknown message: %s", [message](){std::stringstream ss; for( auto c : message){ ss<<c.c_str()<<" "; } return ss.str().c_str(); }());
 	}
+	if( remaining.size() > 1 ){
+		_process_message(Split(remaining));
+	}
 }
 
 void Node::_send_message(TCPsocket to, std::string message){
 	debug("Message sent: %s", message.c_str());
-	SDLNet_TCP_Send(to, (void *)(message.c_str()), message.length());
+	std::stringstream ss;
+	ss<<message.length()<< " "<< message;
+	//debug("Message sent: %s", ss.str().c_str());
+	SDLNet_TCP_Send(to, (void *)(ss.str().c_str()), ss.str().length());
 }
 
 void Node::_forward_message(TCPsocket to, std::vector<std::string> message){
