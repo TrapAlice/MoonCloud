@@ -4,12 +4,15 @@
 
 int main(int argc, char* argv[]){
 	SDLNet_Init();
-	int amount = 1;
+	int amount = 5;
 	Client *c = new Client();
 	c->OpenConnection();
 	//c->GetIdleNode();
 	int jobId = c->GetJobId(amount, 0);
-	c->ProcessTask(jobId, "bin/add5", "5");
+	for( int x = 0; x < amount; ++x ){
+		c->ProcessTask(jobId, "bin/add5", "5");
+	}
+	
 	log_info("Results: %s",c->GetResults().c_str());
 	c->CloseConnection();
 	SDLNet_Quit();

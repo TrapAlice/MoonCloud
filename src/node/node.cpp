@@ -67,7 +67,7 @@ void Node::_check_new_messages(){
 			log_info("Connection to Broker lost");
 			_shutdown = true;
 		}
-	} else {
+	} else if( _client_socket ) {
 		if (SDLNet_TCP_Recv(_client_socket, buffer, 512) > 0){
 			auto s = std::string(buffer);
 			std::stringstream ss(s);
@@ -75,6 +75,14 @@ void Node::_check_new_messages(){
 			std::istream_iterator<std::string> end;
 			std::vector<std::string> vstrings(begin, end);
 			_process_message(vstrings);
+		} else {
+			log_info("Connection to client lost");
+			SDLNet_TCP_DelSocket(_set, _client_socket);
+			_client_socket = nullptr;
+			_status = 0;
+			std::stringstream ss;
+			ss<<SET_STATUS_IDLE;
+			_send_message(_broker_socket,  ss.str());
 		}
 	}
 	
@@ -119,7 +127,7 @@ void Node::_process_message(std::vector<std::string> message){
 		{
 			std::stringstream ss;
 			for( unsigned int x = 1; x < message.size(); ++x ){
-				ss << message[x];
+				ss << message[x]<<" ";
 			}
 			_send_message(_client_socket, ss.str());
 		}
