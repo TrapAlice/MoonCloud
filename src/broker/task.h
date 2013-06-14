@@ -6,10 +6,11 @@ class Node;
 
 class Task{
 public:
-	Task(int id, std::String data);
+	Task(int id, std::string data);
 	void AssignWorker(Node *worker);
-	void Complete(std::String result);
+	void Complete(std::string result);
 	std::string Data();
+	std::string Result();
 	bool isComplete();
 private:
 	int _id;
