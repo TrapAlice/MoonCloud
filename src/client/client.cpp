@@ -2,6 +2,7 @@
 #include "../dbg.h"
 #include "../messageid.h"
 #include <sstream>
+#include <iterator>
 
 Client::Client(){
 
@@ -23,10 +24,10 @@ void Client::GetIdleNode(){
 }
 
 int Client::GetJobId(int amount, int type){
-	std::stringstream ss;
-	ss << JOB_REQUEST << 0 << amount << type;
-	_send_message(ss.str());
-	std::string jobId = _receive_message.c_str();
+	std::stringstream s;
+	s << JOB_REQUEST<<" " << 0<<" " << amount<<" " << type;
+	_send_message(s.str());
+	std::string jobId = _receive_message();
 	std::stringstream ss(jobId);
 	std::istream_iterator<std::string> begin(ss);
 	std::istream_iterator<std::string> end;
@@ -36,12 +37,12 @@ int Client::GetJobId(int amount, int type){
 
 void Client::ProcessTask(int jobId, std::string file, std::string data){
 	std::stringstream ss;
-	ss << JOB_REQUEST << 1 << jobId << file << data;
+	ss << JOB_REQUEST <<" "<< 1 <<" "<< jobId <<" "<< file <<" "<< data;
 	_send_message(ss.str());
 }
 
 std::string Client::GetResults(){
-	_receive_message();
+	return _receive_message();
 }
 
 void Client::CloseConnection(){
