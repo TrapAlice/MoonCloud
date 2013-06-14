@@ -5,7 +5,8 @@
 int main(int argc, char* argv[]){
 	SDLNet_Init();
 	Node *n = new Node();
-	n->Start();
+	int port = atoi(argv[1]);
+	n->Start(port);
 	delete n;
 	SDLNet_Quit();
 }

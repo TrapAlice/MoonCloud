@@ -109,7 +109,9 @@ void TaskManager::_job_successful(int sender, std::string result){
 	TaskGroup *taskGroup = _tasks[task->Id()];
 	if( taskGroup->isComplete() ){
 		//TODO: Results are sent back to client
-		_c->SendMessage(taskGroup->Client(), taskGroup->Results());
+		std::stringstream ss;
+		ss<< JOB_RESULTS<<" "<<taskGroup->Results();
+		_c->SendMessage(taskGroup->Client(), ss.str());
 		/*MessageSystem.AddMessage(new Message("Connection", "SendMessage", new String[]{_Tasks.get(k).Client, "JobResponse Complete "+_Tasks.get(k).getResult()}));*/
 	}
 	_process_tasks();

@@ -7,12 +7,17 @@ BROKER_EXECUTABLE=bin/moonbroker
 NODE_SOURCES=$(wildcard src/node/*.cpp)
 NODE_OBJECTS=$(NODE_SOURCES:.cpp=.o)
 NODE_EXECUTABLE=bin/moonnode
+CLIENT_SOURCES=$(wildcard src/client/*.cpp)
+CLIENT_OBJECTS=$(CLIENT_SOURCES:.cpp=.o)
+CLIENT_EXECUTABLE=bin/moonclient
 
-all: broker node
+all: broker node client
 
 broker: $(BROKER_SOURCES) $(BROKER_EXECUTABLE)
 
 node: $(NODE_SOURCES) $(NODE_EXECUTABLE)
+
+client: $(CLIENT_SOURCES) $(CLIENT_EXECUTABLE)
 
 $(BROKER_EXECUTABLE): $(BROKER_OBJECTS) 
 	$(CC) $(BROKER_OBJECTS) $(LDFLAGS) -o $@
@@ -20,14 +25,19 @@ $(BROKER_EXECUTABLE): $(BROKER_OBJECTS)
 $(NODE_EXECUTABLE): $(NODE_OBJECTS) 
 	$(CC) $(NODE_OBJECTS) $(LDFLAGS) -o $@
 
+$(CLIENT_EXECUTABLE): $(CLIENT_OBJECTS) 
+	$(CC) $(CLIENT_OBJECTS) $(LDFLAGS) -o $@
+
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@
 
-clean: clean-broker clean-node
+clean: clean-broker clean-node clean-client
 
 clean-broker: clean-broker-objects clean-broker-executable
 
 clean-node: clean-node-objects clean-node-executable
+
+clean-client: clean-client-objects clean-client-executable
 
 clean-broker-objects:
 	-rm src/broker/*.o
@@ -40,5 +50,11 @@ clean-node-objects:
 
 clean-node-executable:
 	-rm $(NODE_EXECUTABLE)
+
+clean-client-objects:
+	-rm src/client/*.o
+
+clean-client-executable:
+	-rm $(CLIENT_EXECUTABLE)
 
 rebuild: clean all
