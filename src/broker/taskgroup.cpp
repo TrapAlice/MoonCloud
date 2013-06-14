@@ -1,6 +1,7 @@
 #include "taskgroup.h"
 #include "task.h"
 #include <sstream>
+#include "../dbg.h"
 
 TaskGroup::TaskGroup(int id, int client, int type, int amount){
 	_id = id;
@@ -29,6 +30,7 @@ bool TaskGroup::isOwner(Task *task){
 }
 
 bool TaskGroup::isComplete(){
+	if(!isFull()) return false;
 	for( auto t : _tasks ) {
 		if( !t->isComplete() ) return false;
 	}

@@ -39,6 +39,7 @@ void Connections::Tick(){
 }
 
 void Connections::SendMessage(int id, std::string message){
+	debug("Message sent: %d:%s", id, message.c_str());
 	SDLNet_TCP_Send(_connected_nodes->at(id)->Socket(), (void *)(message.c_str()), message.length());
 }
 
@@ -76,6 +77,7 @@ void Connections::_check_new_messages(){
 
 
 void Connections::_process_message(int id, std::vector<std::string> message){
+	debug("Message received: %d:%s", id, [message](){std::stringstream ss; for( auto c : message){ ss<<c.c_str()<<" "; } return ss.str().c_str(); }());
 	if( message.size() == 0 ) return;
 	switch(atoi(message[0].c_str())){
 		case DISCONNECT:

@@ -4,6 +4,7 @@
 #include "node.h"
 #include "connections.h"
 #include "../dbg.h"
+#include "../messageid.h"
 #include <sstream>
 
 TaskManager::TaskManager(std::map<int, Node*> *nodes){
@@ -32,7 +33,7 @@ void TaskManager::AddJob(int sender, std::vector<std::string> data){
 			log_info("New task group from id:%d, task_group_id:%d, amount: %d", sender, _task_group_id, amount);
 			//TODO: Send message back to client
 			std::stringstream s;
-			s<< "1 "<<newTaskGroup->Id();
+			s<< JOB_ID<<" "<<newTaskGroup->Id();
 			_c->SendMessage(sender, s.str());
 			/*MessageSystem.AddMessage(new Message("Connection","SendMessage", new String[]{pFrom, "JobID "+Integer.toString(_TaskNumber)}));*/
 			++_task_group_id;
@@ -85,7 +86,7 @@ void TaskManager::_job_accepted(int sender){
 	Task *task = _nodes_task[sender];
 	//TODO: send message to node
 	std::stringstream s;
-	s<<"3 "<<task->Data();
+	s<<JOB_DATA<<" "<<task->Data();
 	_c->SendMessage(sender, s.str());
 	/*MessageSystem.AddMessage(new Message("Connection", "SendMessage", new String[]{pFrom, "JobResponse Data "+temp.Data}));*/
 }
@@ -149,7 +150,9 @@ void TaskManager::_process_tasks(){
 			task->AssignWorker(selected_node);
 			_nodes_task[selected_node->Id()] = task;
 			//TODO: Send message to selected_node
-			_c->SendMessage(selected_node->Id(), "2");
+			std::stringstream s;
+			s<<JOB_RESPONSE;
+			_c->SendMessage(selected_node->Id(), s.str());
 			/*MessageSystem.AddMessage(new Message("Connection","SendMessage",new String[]{selectedAgent,"JobRequest"}));*/
 			log_info("Assigning Task %d to node %d", task->Id(), selected_node->Id());
 		} else {
