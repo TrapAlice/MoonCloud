@@ -4,6 +4,7 @@ Node::Node(int id, TCPsocket socket, IPaddress *ip){
 	_id = id;
 	_client = socket;
 	_remote_ip = ip;
+	_status = STATUS_IDLE;
 }
 
 Node::~Node(){

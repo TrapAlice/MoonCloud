@@ -14,6 +14,7 @@ public:
 	bool isComplete();
 	std::string Results();
 	int Id();
+	int Client();
 private:
 	std::vector<Task*> _tasks;
 	int _type;

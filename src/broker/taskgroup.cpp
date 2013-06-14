@@ -44,3 +44,4 @@ std::string TaskGroup::Results(){
 }
 
 int TaskGroup::Id(){ return _id; }
+int TaskGroup::Client(){ return _client; }
