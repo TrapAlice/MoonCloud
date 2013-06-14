@@ -7,7 +7,7 @@ class Node;
 class Task{
 public:
 	Task(int id, std::String data);
-	void Assign_Worker(Node *worker);
+	void AssignWorker(Node *worker);
 	void Complete(std::String result);
 	std::string Data();
 	bool isComplete();

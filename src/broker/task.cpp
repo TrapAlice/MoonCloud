@@ -8,7 +8,7 @@ Task::Task(int id, std::String data){
 	_worker = nullptr;
 }
 
-void Task::Assign_Worker(Node *worker){
+void Task::AssignWorker(Node *worker){
 	_worker = worker;
 }
 
