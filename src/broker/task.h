@@ -12,6 +12,7 @@ public:
 	std::string Data();
 	std::string Result();
 	bool isComplete();
+	int Id();
 private:
 	int _id;
 	Node *_worker;

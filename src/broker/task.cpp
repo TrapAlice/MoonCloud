@@ -21,3 +21,4 @@ std::string Task::Data(){ return _data; }
 std::string Task::Result(){ return _result; }
 
 bool Task::isComplete(){ return _complete; }
+int Task::Id(){ return _id; }
