@@ -2,6 +2,13 @@
 
 #include "SDL/SDL_net.h"
 
+enum Status{
+	STATUS_IDLE,
+	STATUS_BUSY,
+	STATUS_ACTIVE,
+	STATUS_UNKNOWN,
+};
+
 class Node{
 public:
 	Node(int id, TCPsocket socket, IPaddress *ip);
@@ -10,6 +17,8 @@ public:
 	Uint32 Host();
 	Uint16 Port();
 	TCPsocket Socket();
+	int Status();
+	void SetStatus(int status);
 private:
 	int        _id;
 	IPaddress *_remote_ip;
