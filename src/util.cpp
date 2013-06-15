@@ -2,11 +2,11 @@
 #include <stdarg.h>
 
 std::string Pack(std::vector<std::string> v){
-	std::stringstream ss;
+	std::string result;
 	for( auto s : v ){
-		ss << s << " ";
+		result += s + " ";
 	}
-	return ss.str();
+	return result;
 }
 
 std::vector<std::string> Split(std::string s){

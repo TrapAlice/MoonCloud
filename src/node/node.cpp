@@ -86,7 +86,7 @@ void Node::_process_message(std::vector<std::string> message){
 	unsigned size = std::stoi(message[0]);
 	if( size == 0 ) return;
 	std::string temp_string = Pack(SplitFrom(1, message));
-	std::string remaining = size != temp_string.length()? temp_string.substr(size) : "";
+	std::string remaining = size < temp_string.length()? temp_string.substr(size) : "";
 	message = Split(temp_string.substr(0,size));
 	debug("Message received: %s", Pack(message).c_str());
 	if( message.size() == 0 ) return;

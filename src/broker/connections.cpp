@@ -41,7 +41,7 @@ void Connections::Tick(){
 
 void Connections::SendMessage(int id, std::string message){
 	debug("Message sent: %d:%s", id, message.c_str());
-	message = BuildString("%d %s ", message.length(), message.c_str());
+	message = BuildString("%d %s", message.length(), message.c_str());
 	SDLNet_TCP_Send(_connected_nodes->at(id)->Socket(), (void *)(message.c_str()), message.length());
 }
 
