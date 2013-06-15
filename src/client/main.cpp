@@ -6,7 +6,7 @@ int main(int argc, char* argv[]){
 	SDLNet_Init();
 	int amount = 5;
 	Client *c = new Client();
-	c->OpenConnection();
+	c->OpenConnection(atoi(argv[1]));
 	//c->GetIdleNode();
 	int jobId = c->GetJobId(amount, 0);
 	for( int x = 0; x < amount; ++x ){

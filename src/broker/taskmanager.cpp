@@ -75,7 +75,7 @@ void TaskManager::JobResponse(int sender, std::vector<std::string> data){
 }
 
 void TaskManager::NodeDisconnected(int sender){
-
+	_job_interrupted(sender);
 }
 
 void TaskManager::_job_accepted(int sender){

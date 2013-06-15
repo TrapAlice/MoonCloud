@@ -13,8 +13,8 @@ Client::~Client(){
 
 }
 
-void Client::OpenConnection(){
-	SDLNet_ResolveHost(&_node_ip,"localhost",2001);
+void Client::OpenConnection(int port){
+	SDLNet_ResolveHost(&_node_ip,"localhost",port);
 	_node_socket = SDLNet_TCP_Open(&_node_ip);
 }
 

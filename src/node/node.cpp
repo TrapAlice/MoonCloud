@@ -33,6 +33,14 @@ void Node::Start(int port){
 
 	while( !_shutdown ){
 		_check_new_connections();
+		if( _task ){
+			if( _task->isComplete() ){
+				std::string result = _task->Result();
+				delete _task;
+				_task = nullptr;
+			_send_message(_broker_socket, BuildString("%d 2 %s", JOB_RESPONSE, result.c_str()));
+			}
+		}
 		if( SDLNet_CheckSockets(_set, 200) > 0 ){
 			_check_new_messages();
 		}
@@ -50,6 +58,10 @@ void Node::_check_new_connections(){
 			_status = 2;
 			_send_message(_broker_socket, BuildString("%d ", SET_STATUS_ACTIVE));
 			log_info("Client has connected");
+			if( _task ){
+				delete _task;
+				_task = nullptr;
+			}
 		}
 	}
 }
@@ -113,9 +125,7 @@ void Node::_process_message(std::vector<std::string> message){
 		case JOB_DATA:
 		{
 			_task = new Task(message[2], message[3]);
-			std::string result = _task->Run();
-			delete _task;
-			_send_message(_broker_socket, BuildString("%d 2 %s", JOB_RESPONSE, result.c_str()));
+			_task->Run();
 		}
 			break;
 		case JOB_RESULTS:

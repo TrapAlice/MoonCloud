@@ -8,7 +8,7 @@ class Client{
 public:
 	Client();
 	~Client();
-	void OpenConnection();
+	void OpenConnection(int port);
 	void GetIdleNode();
 	int GetJobId(int amount, int type);
 	void ProcessTask(int jobId, std::string file, std::string data);
