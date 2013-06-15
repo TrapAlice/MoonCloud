@@ -19,6 +19,7 @@ public:
 	void AddJob(int sender, std::vector<std::string> data);
 	void JobResponse(int sender, std::vector<std::string> data);
 	void NodeDisconnected(int sender);
+	Node *FindIdleNode();
 private:
 	std::map<int, Node*> *_connected_nodes;
 	std::queue<Task*> _queued_tasks;
@@ -27,7 +28,6 @@ private:
 	std::map<int, Task*> _nodes_task;
 	Connections *_c;
 	
-	Node *_find_idle_node();
 	void _process_tasks();
 	void _job_accepted(int sender);
 	void _job_refused(int sender);

@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <queue>
 #include "SDL/SDL_net.h"
 
 class Node;
@@ -26,6 +27,7 @@ private:
 	TaskManager *_t;
 	SDLNet_SocketSet _set;
 	bool _shutdown = false;
+	std::queue<Node*> _waiting_for_idle_node;
 
 	void _check_new_connections();
 	void _check_new_messages();

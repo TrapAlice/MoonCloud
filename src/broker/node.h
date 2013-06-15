@@ -16,6 +16,8 @@ public:
 	int Id();
 	Uint32 Host();
 	Uint16 Port();
+	int RemotePort();
+	void SetRemotePort(int port);
 	TCPsocket Socket();
 	int Status();
 	void SetStatus(int status);
@@ -24,4 +26,5 @@ private:
 	IPaddress *_remote_ip;
 	TCPsocket  _client;
 	int        _status;
+	int        _port;
 };

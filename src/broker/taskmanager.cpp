@@ -109,7 +109,6 @@ void TaskManager::_job_successful(int sender, std::string result){
 			taskGroup->Clear();
 			delete taskGroup;
 		}
-		_process_tasks();
 	}
 }
 
@@ -126,7 +125,7 @@ void TaskManager::_job_interrupted(int sender){
 
 
 
-Node* TaskManager::_find_idle_node(){
+Node* TaskManager::FindIdleNode(){
 	for( auto node : *_connected_nodes ){
 		if( node.second->Status() == STATUS_IDLE ){
 			node.second->SetStatus(STATUS_UNKNOWN);
@@ -143,7 +142,7 @@ void TaskManager::_process_tasks(){
 		task = _queued_tasks.front();
 		_queued_tasks.pop();
 		Node *selected_node;
-		selected_node = _find_idle_node();
+		selected_node = FindIdleNode();
 		if( selected_node != nullptr ){
 			task->AssignWorker(selected_node);
 			_nodes_task[selected_node->Id()] = task;

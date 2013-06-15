@@ -52,6 +52,7 @@ void Connections::_check_new_connections(){
 		Node *newNode = new Node(_node_number, node, remote_ip);
 		_connected_nodes->insert(std::pair<int, Node*>(_node_number, newNode));
 		SDLNet_TCP_AddSocket(_set, newNode->Socket());
+		newNode->SetStatus(STATUS_UNKNOWN);
 		log_info("Node %d has connected: %x : %d", newNode->Id(), newNode->Host(), newNode->Port());
 		_node_number++;
 	}
@@ -90,17 +91,35 @@ void Connections::_process_message(int id, std::vector<std::string> message){
 			break;
 		case JOB_RESPONSE:
 			_t->JobResponse(id, message);
+			if( !_waiting_for_idle_node.empty() ){
+				Node *waiting_node = _waiting_for_idle_node.front();
+				Node *idle_node = _connected_nodes->at(id);
+				SendMessage(waiting_node->Id(), BuildString("0x%x %d", idle_node->Host(), idle_node->RemotePort()));
+				_waiting_for_idle_node.pop();
+			}
 			break;
-		case SET_STATUS_ACTIVE:
-			_change_node_status(id, STATUS_ACTIVE);
+		case NEW_NODE:
+			_connected_nodes->at(id)->SetRemotePort(std::stoi(message[1]));
+			_change_node_status(id, STATUS_IDLE);
 			break;
 		case SET_STATUS_IDLE:
 			_change_node_status(id, STATUS_IDLE);
+			break;
+		case SET_STATUS_ACTIVE:
+			_change_node_status(id, STATUS_ACTIVE);
 			break;
 		case SET_STATUS_BUSY:
 			_change_node_status(id, STATUS_BUSY);
 			break;
 		case GET_IDLE_NODE:
+		{
+			Node *idle_node = _t->FindIdleNode();
+			if( idle_node ){
+				SendMessage(id, BuildString("0x%x %d", idle_node->Host(), idle_node->RemotePort()));
+			} else {
+				_waiting_for_idle_node.push(_connected_nodes->at(id));
+			}
+		}
 			break;
 		case CLOSE:
 			_shutdown = true;
@@ -108,7 +127,7 @@ void Connections::_process_message(int id, std::vector<std::string> message){
 		case NODE_STATUS:
 			log_info("NODE \t Status \t Host \t Port");
 			for( auto& node : *_connected_nodes ){
-				log_info("%d \t %d \t %x \t %d",node.second->Id(), node.second->Status(), node.second->Host(), node.second->Port());
+				log_info("%d \t %d \t\t %x \t %d",node.second->Id(), node.second->Status(), node.second->Host(), node.second->Port());
 			}
 			break;
 		default:

@@ -4,6 +4,7 @@
 #include "../util.h"
 #include <sstream>
 #include <iterator>
+#include <arpa/inet.h>
 
 Client::Client(){
 
@@ -13,13 +14,19 @@ Client::~Client(){
 
 }
 
-void Client::OpenConnection(int port){
-	SDLNet_ResolveHost(&_node_ip,"localhost",port);
+void Client::OpenConnection(std::string host, int port){
+	SDLNet_ResolveHost(&_node_ip,host.c_str(),port);
 	_node_socket = SDLNet_TCP_Open(&_node_ip);
 }
 
 void Client::GetIdleNode(){
+	log_info("Requesting idle node");
 	_send_message(BuildString("%d ", GET_IDLE_NODE));
+	std::vector<std::string> idle_node = Split(_receive_message());
+	SDLNet_TCP_Close(_node_socket);
+	struct in_addr addr;inet_aton(idle_node[1].c_str(), &addr);
+	SDLNet_ResolveHost(&_node_ip, inet_ntoa(addr), std::stoi(idle_node[2]));
+	_node_socket = SDLNet_TCP_Open(&_node_ip);
 }
 
 int Client::GetJobId(int amount, int type){
@@ -44,6 +51,7 @@ std::string Client::_receive_message(){
 	char buffer[512];
 	memset(buffer, 0, 512);
 	if (SDLNet_TCP_Recv(_node_socket, buffer, 512) > 0){
+		debug("Message received: %s", buffer);
 		return std::string(buffer);
 	}
 	return "";

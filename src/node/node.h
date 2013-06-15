@@ -10,7 +10,7 @@ class Node{
 public:
 	Node();
 	~Node();
-	void Start(int port);
+	void Start(int port, std::string broker_host, int broker_port);
 private:
 	IPaddress _broker_ip;
 	TCPsocket _broker_socket;
