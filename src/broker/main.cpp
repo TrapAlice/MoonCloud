@@ -20,7 +20,7 @@ int main(int argc, char* argv[]){
 	c->Close();
 	delete t;
 	delete c;
-	for( auto& node : *_node_map ){
+	for( auto node : *_node_map ){
 		delete node.second;
 	}
 	_node_map->clear();

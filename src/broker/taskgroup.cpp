@@ -37,6 +37,12 @@ bool TaskGroup::isComplete(){
 	return true;
 }
 
+void TaskGroup::Clear(){
+	for( auto t : _tasks ) {
+		delete t;
+	}
+}
+
 std::string TaskGroup::Results(){
 	std::stringstream ss;
 	for( auto t : _tasks ) {

@@ -12,6 +12,7 @@ public:
 	bool isFull();
 	bool isOwner(Task *task);
 	bool isComplete();
+	void Clear();
 	std::string Results();
 	int Id();
 	int Client();

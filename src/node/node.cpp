@@ -9,6 +9,7 @@
 
 Node::Node(){
 	_set = SDLNet_AllocSocketSet(2);
+	_client_socket = 0;
 }
 
 Node::~Node(){
@@ -36,20 +37,22 @@ void Node::Start(int port){
 			_check_new_messages();
 		}
 	}
+	SDLNet_TCP_Close(_broker_socket);
+	SDLNet_TCP_Close(_client_socket);
 	log_info("Closing down");
 }
 
 void Node::_check_new_connections(){
-	TCPsocket node;
-	if( (node = SDLNet_TCP_Accept(_node_socket)) ){
-		_client_ip = SDLNet_TCP_GetPeerAddress(node);
-		_client_socket = node;
-		SDLNet_TCP_AddSocket(_set, node);
-		_status = 2;
-		std::stringstream ss;
-		ss<<SET_STATUS_ACTIVE;
-		_send_message(_broker_socket,  ss.str());
-		log_info("Client has connected");
+	if( !_client_socket ){
+		if( (_client_socket = SDLNet_TCP_Accept(_node_socket)) ){
+			_client_ip = SDLNet_TCP_GetPeerAddress(_client_socket);
+			SDLNet_TCP_AddSocket(_set, _client_socket);
+			_status = 2;
+			std::stringstream ss;
+			ss<<SET_STATUS_ACTIVE;
+			_send_message(_broker_socket,  ss.str());
+			log_info("Client has connected");
+		}
 	}
 }
 
@@ -70,11 +73,12 @@ void Node::_check_new_messages(){
 			} else {
 				log_info("Connection to client lost");
 				SDLNet_TCP_DelSocket(_set, _client_socket);
-				_client_socket = nullptr;
+				SDLNet_TCP_Close(_client_socket);
+				_client_socket = 0;
 				_status = 0;
 				std::stringstream ss;
 				ss<<SET_STATUS_IDLE;
-				_send_message(_broker_socket,  ss.str());
+				_send_message(_broker_socket, ss.str());
 			}
 		}
 	}
