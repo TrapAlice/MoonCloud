@@ -32,7 +32,10 @@ void Node::Start(int port){
 	log_info("Connection opened for client on port %d", port);
 
 	while( !_shutdown ){
-		_check_new_connections();
+		if( !_client_socket ){
+			_check_new_connections();
+		}
+
 		if( _task ){
 			if( _task->isComplete() ){
 				std::string result = _task->Result();
@@ -41,27 +44,27 @@ void Node::Start(int port){
 			_send_message(_broker_socket, BuildString("%d 2 %s", JOB_RESPONSE, result.c_str()));
 			}
 		}
+		
 		if( SDLNet_CheckSockets(_set, 200) > 0 ){
 			_check_new_messages();
 		}
 	}
+
 	SDLNet_TCP_Close(_broker_socket);
 	SDLNet_TCP_Close(_client_socket);
 	log_info("Closing down");
 }
 
 void Node::_check_new_connections(){
-	if( !_client_socket ){
-		if( (_client_socket = SDLNet_TCP_Accept(_node_socket)) ){
-			_client_ip = SDLNet_TCP_GetPeerAddress(_client_socket);
-			SDLNet_TCP_AddSocket(_set, _client_socket);
-			_status = 2;
-			_send_message(_broker_socket, BuildString("%d ", SET_STATUS_ACTIVE));
-			log_info("Client has connected");
-			if( _task ){
-				delete _task;
-				_task = nullptr;
-			}
+	if( (_client_socket = SDLNet_TCP_Accept(_node_socket)) ){
+		_client_ip = SDLNet_TCP_GetPeerAddress(_client_socket);
+		SDLNet_TCP_AddSocket(_set, _client_socket);
+		_status = 2;
+		_send_message(_broker_socket, BuildString("%d ", SET_STATUS_ACTIVE));
+		log_info("Client has connected");
+		if( _task ){
+			delete _task;
+			_task = nullptr;
 		}
 	}
 }
