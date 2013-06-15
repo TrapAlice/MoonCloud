@@ -41,10 +41,8 @@ void Connections::Tick(){
 
 void Connections::SendMessage(int id, std::string message){
 	debug("Message sent: %d:%s", id, message.c_str());
-	//SDLNet_TCP_Send(_connected_nodes->at(id)->Socket(), (void *)(message.c_str()), message.length());
 	std::stringstream ss;
 	ss<<message.length()<< " "<< message;
-	//debug("Message sent: %s", ss.str().c_str());
 	SDLNet_TCP_Send(_connected_nodes->at(id)->Socket(), (void *)(ss.str().c_str()), ss.str().length());
 }
 
@@ -62,16 +60,11 @@ void Connections::_check_new_connections(){
 
 void Connections::_check_new_messages(){
 	char buffer[512];
-	for( auto& node : *_connected_nodes ){
+	for( auto node : *_connected_nodes ){
 		if( SDLNet_SocketReady(node.second->Socket()) ){
 			memset(buffer, 0, 512);
 			if (SDLNet_TCP_Recv(node.second->Socket(), buffer, 512) > 0){
-				auto s = std::string(buffer);
-				std::stringstream ss(s);
-				std::istream_iterator<std::string> begin(ss);
-				std::istream_iterator<std::string> end;
-				std::vector<std::string> vstrings(begin, end);
-				_process_message(node.first, vstrings);
+				_process_message(node.first, Split(std::string(buffer)));
 			} else {
 				_disconnect_node(node.first);
 			}
@@ -82,22 +75,16 @@ void Connections::_check_new_messages(){
 
 
 void Connections::_process_message(int id, std::vector<std::string> message){
-	debug("Message received: %s", [message](){std::stringstream ss; for( auto c : message){ ss<<c.c_str()<<" "; } return ss.str().c_str(); }());
 	if( message.size() == 0 ) return;
-	int size = atoi(message[0].c_str());
-	message = SplitFrom(1, message);
-	std::string temp_string = Pack(message);
-	std::string remaining;
-	if( size != temp_string.length() ) remaining = temp_string.substr(size);
-	temp_string = temp_string.substr(0,size);
-	message.clear();
-	message = Split(temp_string);
-	debug("Message received: %d:%s", id, [message](){std::stringstream ss; for( auto c : message){ ss<<c.c_str()<<" "; } return ss.str().c_str(); }());
-	if( message.size() == 0 ) return;
+	unsigned size = atoi(message[0].c_str());
+	if( size == 0 ) return;
+	std::string temp_string = Pack(SplitFrom(1, message));
+	std::string remaining = size != temp_string.length()? temp_string.substr(size) : "";
+	message = Split(temp_string.substr(0,size));
+	debug("Message received: %d:%s", id, Pack(message).c_str());
 	switch(atoi(message[0].c_str())){
 		case DISCONNECT:
 			_disconnect_node(id);
-			_t->NodeDisconnected(id);
 			break;
 		case JOB_REQUEST:
 			_t->AddJob(id, message);
@@ -106,38 +93,50 @@ void Connections::_process_message(int id, std::vector<std::string> message){
 			_t->JobResponse(id, message);
 			break;
 		case SET_STATUS_ACTIVE:
-			_connected_nodes->at(id)->SetStatus(STATUS_ACTIVE);
-			_t->JobResponse(id, std::vector<std::string>{"3","3"});
+			_change_node_status(id, STATUS_ACTIVE);
 			break;
 		case SET_STATUS_IDLE:
-			_connected_nodes->at(id)->SetStatus(STATUS_IDLE);
+			_change_node_status(id, STATUS_IDLE);
 			break;
 		case SET_STATUS_BUSY:
-			_connected_nodes->at(id)->SetStatus(STATUS_BUSY);
-			_t->JobResponse(id, std::vector<std::string>{"3","3"});
+			_change_node_status(id, STATUS_BUSY);
 			break;
 		case GET_IDLE_NODE:
+			break;
 		case CLOSE:
 			_shutdown = true;
 			break;
 		case NODE_STATUS:
-		log_info("NODE \t Status \t Host \t Port");
+			log_info("NODE \t Status \t Host \t Port");
 			for( auto& node : *_connected_nodes ){
 				log_info("%d \t %d \t %x \t %d",node.second->Id(), node.second->Status(), node.second->Host(), node.second->Port());
 			}
 			break;
 		default:
-			log_err("Unknown message: %d - %s", id, [message](){std::stringstream ss; for( auto c : message){ ss<<c.c_str()<<" "; } return ss.str().c_str(); }());
+			log_err("Unknown message: %d - %s", id, Pack(message).c_str());
 	}
 	if( remaining.size() > 1 ){
 		_process_message(id, Split(remaining));
 	}
 }
 
+void Connections::_change_node_status(int id, int status){
+	switch( status ){
+		case STATUS_IDLE:
+			break;
+		case STATUS_BUSY:
+		case STATUS_ACTIVE:
+			_t->JobResponse(id, std::vector<std::string>{"3","3"});
+			break;
+	}
+	_connected_nodes->at(id)->SetStatus(status);
+}
+
 bool Connections::isShutdown(){ return _shutdown; }
 
 void Connections::_disconnect_node(int id){
-	auto& node = _connected_nodes->at(id);
+	_t->NodeDisconnected(id);
+	auto node = _connected_nodes->at(id);
 	SDLNet_TCP_DelSocket(_set, node->Socket());
 	delete node;
 	_connected_nodes->erase(id);

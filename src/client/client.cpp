@@ -28,12 +28,8 @@ int Client::GetJobId(int amount, int type){
 	std::stringstream s;
 	s << JOB_REQUEST<<" " << 0<<" " << amount<<" " << type<<" ";
 	_send_message(s.str());
-	std::string jobId = _receive_message();
-	std::stringstream ss(jobId);
-	std::istream_iterator<std::string> begin(ss);
-	std::istream_iterator<std::string> end;
-	std::vector<std::string> vstrings(begin, end);
-	return atoi(vstrings[2].c_str());
+	auto jobId=Split(_receive_message());
+	return atoi(jobId[2].c_str());
 }
 
 void Client::ProcessTask(int jobId, std::string file, std::string data){
@@ -60,7 +56,6 @@ std::string Client::_receive_message(){
 }
 
 void Client::_send_message(std::string message){
-	//debug("Message sent: %s", message.c_str());
 	std::stringstream ss;
 	ss<<message.length()<< " "<< message;
 	debug("Message sent: %s", ss.str().c_str());

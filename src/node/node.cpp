@@ -58,32 +58,24 @@ void Node::_check_new_messages(){
 	memset(buffer, 0, 512);
 	if( SDLNet_SocketReady(_broker_socket) ){
 		if (SDLNet_TCP_Recv(_broker_socket, buffer, 512) > 0){
-			auto s = std::string(buffer);
-			std::stringstream ss(s);
-			std::istream_iterator<std::string> begin(ss);
-			std::istream_iterator<std::string> end;
-			std::vector<std::string> vstrings(begin, end);
-			_process_message(vstrings);
+			_process_message(Split(std::string(buffer)));
 		} else {
 			log_info("Connection to Broker lost");
 			_shutdown = true;
 		}
 	} else if( _client_socket ) {
-		if (SDLNet_TCP_Recv(_client_socket, buffer, 512) > 0){
-			auto s = std::string(buffer);
-			std::stringstream ss(s);
-			std::istream_iterator<std::string> begin(ss);
-			std::istream_iterator<std::string> end;
-			std::vector<std::string> vstrings(begin, end);
-			_process_message(vstrings);
-		} else {
-			log_info("Connection to client lost");
-			SDLNet_TCP_DelSocket(_set, _client_socket);
-			_client_socket = nullptr;
-			_status = 0;
-			std::stringstream ss;
-			ss<<SET_STATUS_IDLE;
-			_send_message(_broker_socket,  ss.str());
+		if( SDLNet_SocketReady(_client_socket) ){
+			if (SDLNet_TCP_Recv(_client_socket, buffer, 512) > 0){
+				_process_message(Split(std::string(buffer)));
+			} else {
+				log_info("Connection to client lost");
+				SDLNet_TCP_DelSocket(_set, _client_socket);
+				_client_socket = nullptr;
+				_status = 0;
+				std::stringstream ss;
+				ss<<SET_STATUS_IDLE;
+				_send_message(_broker_socket,  ss.str());
+			}
 		}
 	}
 	
@@ -91,16 +83,12 @@ void Node::_check_new_messages(){
 
 void Node::_process_message(std::vector<std::string> message){
 	if( message.size() == 0 ) return;
-	unsigned int size = atoi(message[0].c_str());
-	message = SplitFrom(1, message);
-	std::string temp_string = Pack(message);
-	std::string remaining;
-	if( size != temp_string.length() ) remaining = temp_string.substr(size);
-	temp_string = temp_string.substr(0,size);
-	message.clear();
-	message = Split(temp_string);
-
-	debug("Message received: %s", [message](){std::stringstream ss; for( auto c : message){ ss<<c.c_str()<<" "; } return ss.str().c_str(); }());
+	unsigned size = atoi(message[0].c_str());
+	if( size == 0 ) return;
+	std::string temp_string = Pack(SplitFrom(1, message));
+	std::string remaining = size != temp_string.length()? temp_string.substr(size) : "";
+	message = Split(temp_string.substr(0,size));
+	debug("Message received: %s", Pack(message).c_str());
 	if( message.size() == 0 ) return;
 	switch( atoi(message[0].c_str()) ){
 		case JOB_REQUEST:
@@ -155,10 +143,9 @@ void Node::_send_message(TCPsocket to, std::string message){
 	debug("Message sent: %s", message.c_str());
 	std::stringstream ss;
 	ss<<message.length()<< " "<< message;
-	//debug("Message sent: %s", ss.str().c_str());
 	SDLNet_TCP_Send(to, (void *)(ss.str().c_str()), ss.str().length());
 }
 
 void Node::_forward_message(TCPsocket to, std::vector<std::string> message){
-	_send_message(to, [message](){std::stringstream ss; for( auto c : message){ ss<<c.c_str()<<" "; } return ss.str(); }());
+	_send_message(to, Pack(message));
 }

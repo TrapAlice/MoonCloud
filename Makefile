@@ -11,7 +11,10 @@ CLIENT_SOURCES=$(wildcard src/client/*.cpp)
 CLIENT_OBJECTS=$(CLIENT_SOURCES:.cpp=.o)
 CLIENT_EXECUTABLE=bin/moonclient
 
-all: broker node client
+all: utility broker node client
+
+utility: 
+	$(CC) $(CFLAGS) src/util.cpp -o src/util.o
 
 broker: $(BROKER_SOURCES) $(BROKER_EXECUTABLE)
 
@@ -20,13 +23,13 @@ node: $(NODE_SOURCES) $(NODE_EXECUTABLE)
 client: $(CLIENT_SOURCES) $(CLIENT_EXECUTABLE)
 
 $(BROKER_EXECUTABLE): $(BROKER_OBJECTS) 
-	$(CC) $(BROKER_OBJECTS) $(LDFLAGS) -o $@
+	$(CC) $(BROKER_OBJECTS) src/util.o $(LDFLAGS) -o $@
 
 $(NODE_EXECUTABLE): $(NODE_OBJECTS) 
-	$(CC) $(NODE_OBJECTS) $(LDFLAGS) -o $@
+	$(CC) $(NODE_OBJECTS) src/util.o $(LDFLAGS) -o $@
 
 $(CLIENT_EXECUTABLE): $(CLIENT_OBJECTS) 
-	$(CC) $(CLIENT_OBJECTS) $(LDFLAGS) -o $@
+	$(CC) $(CLIENT_OBJECTS) src/util.o $(LDFLAGS) -o $@
 
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@
