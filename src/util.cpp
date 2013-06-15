@@ -1,4 +1,5 @@
 #include "util.h"
+#include <stdarg.h>
 
 std::string Pack(std::vector<std::string> v){
 	std::stringstream ss;
@@ -29,5 +30,18 @@ std::vector<std::string> SplitTo(unsigned int to, std::vector<std::string> sourc
 	for( unsigned int x = 0; x < to; ++x ){
 		result.push_back(source[x]);
 	}
+	return result;
+}
+
+std::string BuildString(std::string s, ...){
+	char *text;
+	va_list ap;
+	text = new char[512];
+	va_start(ap, s);
+	vsprintf(text, s.c_str(), ap);
+	va_end(ap);
+	std::string result(text);
+	free(text);
+
 	return result;
 }

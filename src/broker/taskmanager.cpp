@@ -32,9 +32,7 @@ void TaskManager::AddJob(int sender, std::vector<std::string> data){
 			TaskGroup *newTaskGroup = new TaskGroup(_task_group_id, sender, 0, amount);
 			_tasks[_task_group_id] = newTaskGroup;
 			log_info("New task group from id:%d, task_group_id:%d, amount: %d", sender, _task_group_id, amount);
-			std::stringstream s;
-			s<< JOB_ID<<" "<<newTaskGroup->Id();
-			_c->SendMessage(sender, s.str());
+			_c->SendMessage(sender, BuildString("%d %d ", JOB_ID, newTaskGroup->Id()));
 			++_task_group_id;
 		}
 			break;
@@ -83,9 +81,7 @@ void TaskManager::NodeDisconnected(int sender){
 void TaskManager::_job_accepted(int sender){
 	_connected_nodes->at(sender)->SetStatus(STATUS_BUSY);
 	Task *task = _nodes_task[sender];
-	std::stringstream s;
-	s<<JOB_DATA<<" "<<task->Data();
-	_c->SendMessage(sender, s.str());
+	_c->SendMessage(sender, BuildString("%d %s ",JOB_DATA, task->Data().c_str()));
 }
 
 void TaskManager::_job_refused(int sender){
@@ -108,9 +104,7 @@ void TaskManager::_job_successful(int sender, std::string result){
 		_nodes_task.erase(sender);
 		TaskGroup *taskGroup = _tasks[task->Id()];
 		if( taskGroup->isComplete() ){
-			std::stringstream ss;
-			ss<< JOB_RESULTS<<" "<<taskGroup->Results();
-			_c->SendMessage(taskGroup->Client(), ss.str());
+			_c->SendMessage(taskGroup->Client(), BuildString("%d %s", JOB_RESULTS, taskGroup->Results().c_str()));
 			_tasks.erase(task->Id());
 			taskGroup->Clear();
 			delete taskGroup;
@@ -153,9 +147,7 @@ void TaskManager::_process_tasks(){
 		if( selected_node != nullptr ){
 			task->AssignWorker(selected_node);
 			_nodes_task[selected_node->Id()] = task;
-			std::stringstream s;
-			s<<JOB_RESPONSE;
-			_c->SendMessage(selected_node->Id(), s.str());
+			_c->SendMessage(selected_node->Id(), BuildString("%d ", JOB_RESPONSE));
 			log_info("Assigning Task %d to node %d", task->Id(), selected_node->Id());
 		} else {
 			spareTasks.push(task);

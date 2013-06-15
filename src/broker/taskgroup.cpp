@@ -44,7 +44,7 @@ void TaskGroup::Clear(){
 }
 
 std::string TaskGroup::Results(){
-	std::stringstream ss;
+	std::ostringstream ss;
 	for( auto t : _tasks ) {
 		ss << t->Result();
 	}

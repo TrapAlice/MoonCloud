@@ -19,23 +19,17 @@ void Client::OpenConnection(){
 }
 
 void Client::GetIdleNode(){
-	std::stringstream ss;
-	ss << GET_IDLE_NODE;
-	_send_message(ss.str());
+	_send_message(BuildString("%d ", GET_IDLE_NODE));
 }
 
 int Client::GetJobId(int amount, int type){
-	std::stringstream s;
-	s << JOB_REQUEST<<" " << 0<<" " << amount<<" " << type<<" ";
-	_send_message(s.str());
+	_send_message(BuildString("%d 0 %d %d ", JOB_REQUEST, amount, type));
 	auto jobId=Split(_receive_message());
 	return atoi(jobId[2].c_str());
 }
 
 void Client::ProcessTask(int jobId, std::string file, std::string data){
-	std::stringstream ss;
-	ss << JOB_REQUEST <<" "<< 1 <<" "<< jobId <<" "<< file <<" "<< data<<" ";
-	_send_message(ss.str());
+	_send_message(BuildString("%d 1 %d %s %s", JOB_REQUEST, jobId, file.c_str(), data.c_str()));
 }
 
 std::string Client::GetResults(){
@@ -56,8 +50,7 @@ std::string Client::_receive_message(){
 }
 
 void Client::_send_message(std::string message){
-	std::stringstream ss;
-	ss<<message.length()<< " "<< message;
-	debug("Message sent: %s", ss.str().c_str());
-	SDLNet_TCP_Send(_node_socket, (void *)(ss.str().c_str()), ss.str().length());
+	debug("Message sent: %s", message.c_str());
+	message = BuildString("%d %s", message.length(), message.c_str());
+	SDLNet_TCP_Send(_node_socket, (void *)(message.c_str()), message.length());
 }

@@ -48,9 +48,7 @@ void Node::_check_new_connections(){
 			_client_ip = SDLNet_TCP_GetPeerAddress(_client_socket);
 			SDLNet_TCP_AddSocket(_set, _client_socket);
 			_status = 2;
-			std::stringstream ss;
-			ss<<SET_STATUS_ACTIVE;
-			_send_message(_broker_socket,  ss.str());
+			_send_message(_broker_socket, BuildString("%d ", SET_STATUS_ACTIVE));
 			log_info("Client has connected");
 		}
 	}
@@ -76,9 +74,7 @@ void Node::_check_new_messages(){
 				SDLNet_TCP_Close(_client_socket);
 				_client_socket = 0;
 				_status = 0;
-				std::stringstream ss;
-				ss<<SET_STATUS_IDLE;
-				_send_message(_broker_socket, ss.str());
+				_send_message(_broker_socket, BuildString("%d ", SET_STATUS_IDLE));
 			}
 		}
 	}
@@ -102,13 +98,11 @@ void Node::_process_message(std::vector<std::string> message){
 			break;
 		case JOB_RESPONSE:
 		{
-			std::stringstream s;
 			if( _status == 0 ){
-				s<<JOB_RESPONSE<<" 0";
+				_send_message(_broker_socket, BuildString("%d 0 ", JOB_RESPONSE));
 			} else {
-				s<<JOB_RESPONSE<<" 1";
+				_send_message(_broker_socket, BuildString("%d 1 ", JOB_RESPONSE));
 			}
-			_send_message(_broker_socket, s.str());
 		}
 			break;
 		case JOB_ID:
@@ -118,25 +112,19 @@ void Node::_process_message(std::vector<std::string> message){
 			break;
 		case JOB_DATA:
 		{
-			std::stringstream s;
 			_task = new Task(message[2], message[3]);
 			std::string result = _task->Run();
-			s<<JOB_RESPONSE<<" 2 "<< result;
 			delete _task;
-			_send_message(_broker_socket, s.str());
+			_send_message(_broker_socket, BuildString("%d 2 %s", JOB_RESPONSE, result.c_str()));
 		}
 			break;
 		case JOB_RESULTS:
 		{
-			std::stringstream ss;
-			for( unsigned int x = 1; x < message.size(); ++x ){
-				ss << message[x]<<" ";
-			}
-			_send_message(_client_socket, ss.str());
+			_send_message(_client_socket, Pack(SplitFrom(1, message)));
 		}
 			break;
 		default:
-			log_err("Unknown message: %s", [message](){std::stringstream ss; for( auto c : message){ ss<<c.c_str()<<" "; } return ss.str().c_str(); }());
+			log_err("Unknown message: %s", Pack(message).c_str());
 	}
 	if( remaining.size() > 1 ){
 		_process_message(Split(remaining));
@@ -145,9 +133,8 @@ void Node::_process_message(std::vector<std::string> message){
 
 void Node::_send_message(TCPsocket to, std::string message){
 	debug("Message sent: %s", message.c_str());
-	std::stringstream ss;
-	ss<<message.length()<< " "<< message;
-	SDLNet_TCP_Send(to, (void *)(ss.str().c_str()), ss.str().length());
+	message = BuildString("%d %s", message.length(), message.c_str());
+	SDLNet_TCP_Send(to, (void *)(message.c_str()), message.length());
 }
 
 void Node::_forward_message(TCPsocket to, std::vector<std::string> message){
