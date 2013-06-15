@@ -25,10 +25,10 @@ void TaskManager::Tick(){
 }
 
 void TaskManager::AddJob(int sender, std::vector<std::string> data){
-	switch( atoi(data[1].c_str()) ){
+	switch( std::stoi(data[1]) ){
 		case 0: //Start
 		{
-			int amount = atoi(data[2].c_str());
+			int amount = std::stoi(data[2]);
 			TaskGroup *newTaskGroup = new TaskGroup(_task_group_id, sender, 0, amount);
 			_tasks[_task_group_id] = newTaskGroup;
 			log_info("New task group from id:%d, task_group_id:%d, amount: %d", sender, _task_group_id, amount);
@@ -38,7 +38,7 @@ void TaskManager::AddJob(int sender, std::vector<std::string> data){
 			break;
 		case 1: //Add
 		{
-			TaskGroup *temp = _tasks[atoi(data[2].c_str())];
+			TaskGroup *temp = _tasks[std::stoi(data[2])];
 			if( temp ){
 				Task *newTask = new Task(temp->Id(), Pack(SplitFrom(2, data)));
 				if( temp->AddTask(newTask) ){
@@ -58,7 +58,7 @@ void TaskManager::AddJob(int sender, std::vector<std::string> data){
 }
 
 void TaskManager::JobResponse(int sender, std::vector<std::string> data){
-	switch( atoi(data[1].c_str()) ){
+	switch( std::stoi(data[1]) ){
 		case 0://yes
 			_job_accepted(sender);
 			break;

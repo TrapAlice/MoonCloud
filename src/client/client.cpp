@@ -25,7 +25,7 @@ void Client::GetIdleNode(){
 int Client::GetJobId(int amount, int type){
 	_send_message(BuildString("%d 0 %d %d ", JOB_REQUEST, amount, type));
 	auto jobId=Split(_receive_message());
-	return atoi(jobId[2].c_str());
+	return std::stoi(jobId[2]);
 }
 
 void Client::ProcessTask(int jobId, std::string file, std::string data){

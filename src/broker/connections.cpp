@@ -75,13 +75,13 @@ void Connections::_check_new_messages(){
 
 void Connections::_process_message(int id, std::vector<std::string> message){
 	if( message.size() == 0 ) return;
-	unsigned size = atoi(message[0].c_str());
+	unsigned size = std::stoi(message[0]);
 	if( size == 0 ) return;
 	std::string temp_string = Pack(SplitFrom(1, message));
 	std::string remaining = size != temp_string.length()? temp_string.substr(size) : "";
 	message = Split(temp_string.substr(0,size));
 	debug("Message received: %d:%s", id, Pack(message).c_str());
-	switch(atoi(message[0].c_str())){
+	switch(std::stoi(message[0])){
 		case DISCONNECT:
 			_disconnect_node(id);
 			break;
