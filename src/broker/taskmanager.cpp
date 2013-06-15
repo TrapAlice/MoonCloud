@@ -111,6 +111,9 @@ void TaskManager::_job_successful(int sender, std::string result){
 			std::stringstream ss;
 			ss<< JOB_RESULTS<<" "<<taskGroup->Results();
 			_c->SendMessage(taskGroup->Client(), ss.str());
+			_tasks.erase(task->Id());
+			taskGroup->Clear();
+			delete taskGroup;
 		}
 		_process_tasks();
 	}

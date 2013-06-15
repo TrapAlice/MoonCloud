@@ -8,7 +8,7 @@ Node::Node(int id, TCPsocket socket, IPaddress *ip){
 }
 
 Node::~Node(){
-	delete _remote_ip;
+	SDLNet_TCP_Close(_client);
 }
 
 void Node::SetStatus(int status){
