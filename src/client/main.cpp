@@ -15,5 +15,6 @@ int main(int argc, char* argv[]){
 	
 	log_info("Results: %s",c->GetResults().c_str());
 	c->CloseConnection();
+	delete c;
 	SDLNet_Quit();
 }

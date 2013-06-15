@@ -31,4 +31,5 @@ private:
 	void _check_new_messages();
 	void _process_message(int id, std::vector<std::string> message);
 	void _disconnect_node(int id);
+	void _change_node_status(int id, int status);
 };
