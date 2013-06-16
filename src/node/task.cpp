@@ -10,10 +10,15 @@ Task::Task(std::string file, std::string data){
 	_data = data;
 }
 
-Task::~Task(){}
+Task::~Task(){
+	if( _task ){
+		pclose(_task);
+		delete _task;
+	}
+}
 
 void Task::Run(){
-	FILE* _task = popen(BuildString("%s %s", _file.c_str(), _data.c_str()).c_str(), "r");
+	_task = popen(BuildString("%s %s", _file.c_str(), _data.c_str()).c_str(), "r");
 	_fileno = fileno(_task);
 	fcntl(_fileno, F_SETFL, O_NONBLOCK);
 }
@@ -25,9 +30,11 @@ bool Task::isComplete(){
 		return false;
 	} else if ( r > 0 ){
   	_result = buffer;
+  	pclose(_task);
+  	delete _task;
+  	_task = 0;
 		return true;
 	} else {
-		pclose(_task);
 	}
 	return false;
 }

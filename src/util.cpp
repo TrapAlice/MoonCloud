@@ -40,6 +40,6 @@ std::string BuildString(std::string s, ...){
 	vsprintf(text, s.c_str(), ap);
 	va_end(ap);
 	std::string result(text);
-	free(text);
+	delete text;
 	return result;
 }
