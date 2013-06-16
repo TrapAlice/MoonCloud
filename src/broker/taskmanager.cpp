@@ -48,9 +48,6 @@ void TaskManager::AddJob(int sender, std::vector<std::string> data){
 					delete newTask;
 					log_err("Task Group %d already full", temp->Id());
 				}
-				if( temp->isFull() ){
-					_process_tasks();
-				} 
 			}
 		}
 			break;
@@ -91,7 +88,6 @@ void TaskManager::_job_refused(int sender){
 		task->AssignWorker(nullptr);
 		_queued_tasks.push(task);
 		_nodes_task.erase(sender);
-		_process_tasks();
 	}
 }
 
@@ -119,7 +115,6 @@ void TaskManager::_job_interrupted(int sender){
 		task->AssignWorker(nullptr);
 		_queued_tasks.push(task);
 		_nodes_task.erase(sender);
-		_process_tasks();
 	}
 }
 
