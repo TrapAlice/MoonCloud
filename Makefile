@@ -35,6 +35,7 @@ $(CLIENT_EXECUTABLE): $(CLIENT_OBJECTS)
 	$(CC) $(CFLAGS) $< -o $@
 
 clean: clean-broker clean-node clean-client
+	-rm src/util.o
 
 clean-broker: clean-broker-objects clean-broker-executable
 
