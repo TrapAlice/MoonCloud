@@ -8,9 +8,9 @@
 #include <sstream>
 #include <iterator>
 
-Connections::Connections(std::shared_ptr<std::map<int, std::shared_ptr<Node>>> nodes){
+Connections::Connections(std::shared_ptr<std::map<int, std::shared_ptr<Node>>> nodes, int max_nodes){
 	_connected_nodes = nodes;
-	_set = SDLNet_AllocSocketSet(20);
+	_set = SDLNet_AllocSocketSet(max_nodes);
 }
 
 Connections::~Connections(){

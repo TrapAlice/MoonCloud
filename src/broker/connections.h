@@ -12,7 +12,7 @@ class TaskManager;
 
 class Connections{
 public:
-	Connections(std::shared_ptr<std::map<int, std::shared_ptr<Node>>> nodes);
+	Connections(std::shared_ptr<std::map<int, std::shared_ptr<Node>>> nodes, int max_nodes);
 	~Connections();
 	void AddTaskManager(std::shared_ptr<TaskManager> t);
 	void Open(int port);

@@ -10,23 +10,22 @@
 
 int main(int argc, char* argv[]){
 	int port = 2000;
+	int max_nodes = 20;
 	bool help = false;
 	int v;
 
-	while ( (v = getopt (argc, argv, "p::h::")) != -1 ){
+	while ( (v = getopt (argc, argv, "p::n::h::")) != -1 ){
 		switch(v){
-			case 'p':
-				port = atoi(optarg);
-				break;
-			case 'h':
-				help = true;
-				break;
+			case 'p': port = atoi(optarg); break;
+			case 'n': max_noes = atoi(optarg); break;
+			case 'h': help = true; break;
 		}
 	}
 
 	if( help ){
 		std::cout << "Usage:"<<std::endl<<
-			"-p    port           optional (default 2000)\n";
+			"-p    Port           optional (default 2000)\n"<<
+			"-n    Max nodes      optional (default 20)\n";
 		exit(0); 
 	}
 
