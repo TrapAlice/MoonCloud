@@ -27,15 +27,17 @@ void Node::Start(int port, std::string broker_host, int broker_port){
 	_status = 0;
 	log_info("Starting up node");
 	log_info("Connecting to Broker");
-	SDLNet_ResolveHost(&_broker_ip, broker_host.c_str(), broker_port);
+	check(SDLNet_ResolveHost(&_broker_ip, broker_host.c_str(), broker_port) != -1, "Error: %s", SDLNet_GetError());
 	_broker_socket = SDLNet_TCP_Open(&_broker_ip);
+	check(_broker_socket, "Error: %s", SDLNet_GetError());
 	SDLNet_TCP_AddSocket(_set, _broker_socket);
 	log_info("Connected to Broker");
 	_send_message(_broker_socket, BuildString("%d %d ", NEW_NODE, port));
 
 	log_info("Opening connection for client");
-	SDLNet_ResolveHost(&_node_ip, NULL, port);
+	check(SDLNet_ResolveHost(&_node_ip, NULL, port) != -1, "Error: %s", SDLNet_GetError());
 	_node_socket = SDLNet_TCP_Open(&_node_ip);
+	check(_node_socket, "Error: %s", SDLNet_GetError());
 	log_info("Connection opened for client on port %d", port);
 
 	while( !_shutdown ){

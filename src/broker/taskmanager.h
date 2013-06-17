@@ -27,7 +27,7 @@ private:
 	std::map<int, std::shared_ptr<TaskGroup>> _tasks;
 	int _task_group_id = 1;
 	std::map<int, std::shared_ptr<Task>> _nodes_task;
-	std::shared_ptr<Connections> _c;
+	std::weak_ptr<Connections> _c;
 	
 	void _process_tasks();
 	void _job_accepted(int sender);

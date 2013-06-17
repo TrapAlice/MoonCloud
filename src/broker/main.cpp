@@ -29,7 +29,8 @@ int main(int argc, char* argv[]){
 		exit(0); 
 	}
 
-	SDLNet_Init();
+	check(SDLNet_Init() != -1, "Error: %s", SDLNet_GetError());
+
 	std::shared_ptr<std::map<int, std::shared_ptr<Node>>> _node_map(new std::map<int, std::shared_ptr<Node>>);
 	std::shared_ptr<Connections> c(new Connections(_node_map, max_nodes));
 	std::shared_ptr<TaskManager> t(new TaskManager(_node_map));

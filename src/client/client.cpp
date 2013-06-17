@@ -15,8 +15,9 @@ Client::~Client(){
 }
 
 void Client::OpenConnection(std::string host, int port){
-	SDLNet_ResolveHost(&_node_ip,host.c_str(),port);
+	check(SDLNet_ResolveHost(&_node_ip,host.c_str(),port) != -1, "Error: %s", SDLNet_GetError());
 	_node_socket = SDLNet_TCP_Open(&_node_ip);
+	check(_node_socket, "Error: %s", SDLNet_GetError());
 }
 
 void Client::GetIdleNode(){

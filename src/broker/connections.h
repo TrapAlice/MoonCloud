@@ -25,7 +25,7 @@ private:
 	IPaddress _server_ip;
 	int _node_number = 1;
 	std::shared_ptr<std::map<int, std::shared_ptr<Node>>> _connected_nodes;
-	std::shared_ptr<TaskManager> _t;
+	std::weak_ptr<TaskManager> _t;
 	SDLNet_SocketSet _set;
 	bool _shutdown = false;
 	std::queue<std::shared_ptr<Node>> _waiting_for_idle_node;
@@ -35,4 +35,5 @@ private:
 	void _process_message(int id, std::vector<std::string> message);
 	void _disconnect_node(int id);
 	void _change_node_status(int id, int status);
+	void _allocate_idle_node();
 };

@@ -23,7 +23,7 @@
 
 #define log_info(M, ...) fprintf(stderr, "\x1B[32m" "[INFO] (%s:%d) " M "\n" "\x1B[37m", __FILE__, __LINE__, ##__VA_ARGS__)
 
-#define check(A, M, ...) if(!(A)) { log_err(M, ##__VA_ARGS__); }
+#define check(A, M, ...) if(!(A)) { log_err(M, ##__VA_ARGS__); exit(0); }
 
 #define sentinel(M, ...)  { log_err(M, ##__VA_ARGS__); }
 

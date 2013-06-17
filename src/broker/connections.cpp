@@ -18,8 +18,9 @@ Connections::~Connections(){
 }
 
 void Connections::Open(int port){
-	SDLNet_ResolveHost(&_server_ip, NULL, port);
+	check(SDLNet_ResolveHost(&_server_ip, NULL, port) != -1, "Error: %s", SDLNet_GetError());
 	_server = SDLNet_TCP_Open(&_server_ip);
+	check(_server, "Error: %s", SDLNet_GetError());
 	log_info("Conncetions Manager opened on port: %d", port);
 }
 
@@ -87,20 +88,16 @@ void Connections::_process_message(int id, std::vector<std::string> message){
 			_disconnect_node(id);
 			break;
 		case JOB_REQUEST:
-			_t->AddJob(id, message);
+			_t.lock()->AddJob(id, message);
 			break;
 		case JOB_RESPONSE:
-			_t->JobResponse(id, message);
-			if( !_waiting_for_idle_node.empty() ){
-				auto waiting_node = _waiting_for_idle_node.front();
-				auto idle_node = _connected_nodes->at(id);
-				SendMessage(waiting_node->Id(), BuildString("0x%x %d", idle_node->Host(), idle_node->RemotePort()));
-				_waiting_for_idle_node.pop();
-			}
+			_t.lock()->JobResponse(id, message);
+			_allocate_idle_node();
 			break;
 		case NEW_NODE:
 			_connected_nodes->at(id)->SetRemotePort(std::stoi(message[1]));
 			_change_node_status(id, STATUS_IDLE);
+			_allocate_idle_node();
 			break;
 		case SET_STATUS_IDLE:
 			_change_node_status(id, STATUS_IDLE);
@@ -112,14 +109,7 @@ void Connections::_process_message(int id, std::vector<std::string> message){
 			_change_node_status(id, STATUS_BUSY);
 			break;
 		case GET_IDLE_NODE:
-		{
-			auto idle_node = _t->FindIdleNode();
-			if( idle_node ){
-				SendMessage(id, BuildString("0x%x %d", idle_node->Host(), idle_node->RemotePort()));
-			} else {
-				_waiting_for_idle_node.push(_connected_nodes->at(id));
-			}
-		}
+			_waiting_for_idle_node.push(_connected_nodes->at(id));
 			break;
 		case CLOSE:
 			_shutdown = true;
@@ -144,7 +134,7 @@ void Connections::_change_node_status(int id, int status){
 			break;
 		case STATUS_BUSY:
 		case STATUS_ACTIVE:
-			_t->JobResponse(id, std::vector<std::string>{"3","3"});
+			_t.lock()->JobResponse(id, std::vector<std::string>{"3","3"});
 			break;
 	}
 	_connected_nodes->at(id)->SetStatus(status);
@@ -153,10 +143,20 @@ void Connections::_change_node_status(int id, int status){
 bool Connections::isShutdown(){ return _shutdown; }
 
 void Connections::_disconnect_node(int id){
-	_t->NodeDisconnected(id);
+	_t.lock()->NodeDisconnected(id);
 	auto node = _connected_nodes->at(id);
 	SDLNet_TCP_DelSocket(_set, node->Socket());
 	_connected_nodes->erase(id);
 	log_info("Node %d disconnected", id);
 }
 
+void Connections::_allocate_idle_node(){
+	if( !_waiting_for_idle_node.empty() ){
+		auto idle_node = _t.lock()->FindIdleNode();
+		if( idle_node ){
+			auto waiting_node = _waiting_for_idle_node.front();
+			SendMessage(waiting_node->Id(), BuildString("0x%x %d", idle_node->Host(), idle_node->RemotePort()));
+			_waiting_for_idle_node.pop();
+		}
+	}
+}
