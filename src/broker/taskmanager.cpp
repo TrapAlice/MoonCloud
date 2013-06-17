@@ -38,14 +38,14 @@ void TaskManager::AddJob(int sender, std::vector<std::string> data){
 			break;
 		case 1: //Add
 		{
-			std::shared_ptr<TaskGroup> temp = _tasks[std::stoi(data[2])];
-			if( temp ){
-				std::shared_ptr<Task> newTask(new Task(temp->Id(), Pack(SplitFrom(2, data))));
-				if( temp->AddTask(newTask) ){
+			auto taskGroup = _tasks[std::stoi(data[2])];
+			if( taskGroup ){
+				std::shared_ptr<Task> newTask(new Task(taskGroup->Id(), Pack(SplitFrom(2, data))));
+				if( taskGroup->AddTask(newTask) ){
 					_queued_tasks.push(newTask);
-					log_info("New task from id:%d, task_group:%d added", sender, temp->Id());
+					log_info("New task from id:%d, task_group:%d added", sender, taskGroup->Id());
 				} else {
-					log_err("Task Group %d already full", temp->Id());
+					log_err("Task Group %d already full", taskGroup->Id());
 				}
 			}
 		}
@@ -76,13 +76,13 @@ void TaskManager::NodeDisconnected(int sender){
 
 void TaskManager::_job_accepted(int sender){
 	_connected_nodes->at(sender)->SetStatus(STATUS_BUSY);
-	std::shared_ptr<Task> task = _nodes_task[sender];
+	auto task = _nodes_task[sender];
 	_c->SendMessage(sender, BuildString("%d %s ",JOB_DATA, task->Data().c_str()));
 }
 
 void TaskManager::_job_refused(int sender){
 	_connected_nodes->at(sender)->SetStatus(STATUS_UNKNOWN);
-	std::shared_ptr<Task> task = _nodes_task[sender];
+	auto task = _nodes_task[sender];
 	if( task ){
 		_queued_tasks.push(task);
 		_nodes_task.erase(sender);
@@ -91,11 +91,11 @@ void TaskManager::_job_refused(int sender){
 
 void TaskManager::_job_successful(int sender, std::string result){
 	_connected_nodes->at(sender)->SetStatus(STATUS_IDLE);
-	std::shared_ptr<Task> task = _nodes_task[sender];
+	auto task = _nodes_task[sender];
 	if( task ){
 		task->Complete(result);
 		_nodes_task.erase(sender);
-		std::shared_ptr<TaskGroup> taskGroup = _tasks[task->Id()];
+		auto taskGroup = _tasks[task->Id()];
 		if( taskGroup->isComplete() ){
 			_c->SendMessage(taskGroup->Client(), BuildString("%d %s", JOB_RESULTS, taskGroup->Results().c_str()));
 			_tasks.erase(task->Id());
@@ -105,7 +105,7 @@ void TaskManager::_job_successful(int sender, std::string result){
 }
 
 void TaskManager::_job_interrupted(int sender){
-	std::shared_ptr<Task> task = _nodes_task[sender];
+	auto task = _nodes_task[sender];
 	if( task ){
 		log_info("Task %d was interrupted", task->Id());
 		_queued_tasks.push(task);
@@ -131,8 +131,7 @@ void TaskManager::_process_tasks(){
 	while( _queued_tasks.size() > 0 ){
 		task = _queued_tasks.front();
 		_queued_tasks.pop();
-		std::shared_ptr<Node> selected_node;
-		selected_node = FindIdleNode();
+		auto selected_node = FindIdleNode();
 		if( selected_node ){
 			_nodes_task[selected_node->Id()] = task;
 			_c->SendMessage(selected_node->Id(), BuildString("%d ", JOB_RESPONSE));

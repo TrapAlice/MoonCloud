@@ -92,8 +92,8 @@ void Connections::_process_message(int id, std::vector<std::string> message){
 		case JOB_RESPONSE:
 			_t->JobResponse(id, message);
 			if( !_waiting_for_idle_node.empty() ){
-				std::shared_ptr<Node> waiting_node = _waiting_for_idle_node.front();
-				std::shared_ptr<Node> idle_node = _connected_nodes->at(id);
+				auto waiting_node = _waiting_for_idle_node.front();
+				auto idle_node = _connected_nodes->at(id);
 				SendMessage(waiting_node->Id(), BuildString("0x%x %d", idle_node->Host(), idle_node->RemotePort()));
 				_waiting_for_idle_node.pop();
 			}
@@ -113,7 +113,7 @@ void Connections::_process_message(int id, std::vector<std::string> message){
 			break;
 		case GET_IDLE_NODE:
 		{
-			std::shared_ptr<Node> idle_node = _t->FindIdleNode();
+			auto idle_node = _t->FindIdleNode();
 			if( idle_node ){
 				SendMessage(id, BuildString("0x%x %d", idle_node->Host(), idle_node->RemotePort()));
 			} else {
@@ -156,7 +156,6 @@ void Connections::_disconnect_node(int id){
 	_t->NodeDisconnected(id);
 	auto node = _connected_nodes->at(id);
 	SDLNet_TCP_DelSocket(_set, node->Socket());
-	//delete node;
 	_connected_nodes->erase(id);
 	log_info("Node %d disconnected", id);
 }
