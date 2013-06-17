@@ -26,7 +26,7 @@ int main(int argc, char* argv[]){
 	}
 
 
-	SDLNet_Init();
+	check(SDLNet_Init() != -1, "Error: %s", SDLNet_GetError());
 	int amount = 5;
 	Client *c = new Client();
 	c->OpenConnection(target_host, target_port);

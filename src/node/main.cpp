@@ -29,7 +29,7 @@ int main(int argc, char* argv[]){
 		exit(0); 
 	}
 
-	SDLNet_Init();
+	check(SDLNet_Init() != -1, "Error: %s", SDLNet_GetError());
 	std::unique_ptr<Node> n(new Node());
 	n->Start(node_port, broker_host, broker_port);
 	n->Stop();
