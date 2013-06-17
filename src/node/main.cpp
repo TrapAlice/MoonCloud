@@ -3,6 +3,7 @@
 #include "node.h"
 #include <unistd.h>
 #include <iostream>
+#include <memory>
 
 int main(int argc, char* argv[]){
 	int broker_port = 2000;
@@ -33,8 +34,8 @@ int main(int argc, char* argv[]){
 	}
 
 	SDLNet_Init();
-	Node *n = new Node();
+	std::unique_ptr<Node> n(new Node());
 	n->Start(node_port, broker_host, broker_port);
-	delete n;
+	n->Stop();
 	SDLNet_Quit();
 }

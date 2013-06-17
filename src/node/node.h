@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 class Task;
 
@@ -11,6 +12,7 @@ public:
 	Node();
 	~Node();
 	void Start(int port, std::string broker_host, int broker_port);
+	void Stop();
 private:
 	IPaddress _broker_ip;
 	TCPsocket _broker_socket;
@@ -20,7 +22,7 @@ private:
 	TCPsocket _client_socket;
 	SDLNet_SocketSet _set;
 	int _status;
-	Task* _task;
+	std::unique_ptr<Task> _task;
 	bool _shutdown = false;
 	void _check_new_connections();
 	void _check_new_messages();
