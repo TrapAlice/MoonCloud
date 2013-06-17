@@ -13,7 +13,6 @@ Task::Task(std::string file, std::string data){
 Task::~Task(){
 	if( _task ){
 		pclose(_task);
-		delete _task;
 	}
 }
 
@@ -31,7 +30,6 @@ bool Task::isComplete(){
 	} else if ( r > 0 ){
   	_result = buffer;
   	pclose(_task);
-  	delete _task;
   	_task = 0;
 		return true;
 	} else {

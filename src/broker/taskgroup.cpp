@@ -10,7 +10,7 @@ TaskGroup::TaskGroup(int id, int client, int type, int amount){
 	_amount = amount;
 }
 
-bool TaskGroup::AddTask(Task *task){
+bool TaskGroup::AddTask(std::shared_ptr<Task> task){
 	if( (int)_tasks.size() < _amount ){
 		_tasks.push_back(task);
 		return true;
@@ -22,13 +22,6 @@ bool TaskGroup::isFull(){
 	return (int)_tasks.size() == _amount;
 }
 
-bool TaskGroup::isOwner(Task *task){
-	for( auto t : _tasks ){
-		if( t == task ) return true;
-	}
-	return false;
-}
-
 bool TaskGroup::isComplete(){
 	if(!isFull()) return false;
 	for( auto t : _tasks ) {
@@ -38,9 +31,6 @@ bool TaskGroup::isComplete(){
 }
 
 void TaskGroup::Clear(){
-	for( auto t : _tasks ) {
-		delete t;
-	}
 }
 
 std::string TaskGroup::Results(){

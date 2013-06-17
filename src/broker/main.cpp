@@ -6,6 +6,7 @@
 #include "SDL/SDL_net.h"
 #include <unistd.h>
 #include <iostream>
+#include <memory>
 
 int main(int argc, char* argv[]){
 	int port = 2000;
@@ -30,9 +31,9 @@ int main(int argc, char* argv[]){
 	}
 
 	SDLNet_Init();
-	auto *_node_map = new std::map<int, Node*>;
-	Connections *c = new Connections(_node_map);
-	TaskManager *t = new TaskManager(_node_map);
+	std::shared_ptr<std::map<int, std::shared_ptr<Node>>> _node_map(new std::map<int, std::shared_ptr<Node>>);
+	std::shared_ptr<Connections> c(new Connections(_node_map));
+	std::shared_ptr<TaskManager> t(new TaskManager(_node_map));
 	c->AddTaskManager(t);
 	t->AddConnections(c);
 	c->Open(port);
@@ -41,12 +42,6 @@ int main(int argc, char* argv[]){
 		t->Tick();
 	}
 	c->Close();
-	delete t;
-	delete c;
-	for( auto node : *_node_map ){
-		delete node.second;
-	}
 	_node_map->clear();
-	delete _node_map;
 	SDLNet_Quit();
 }

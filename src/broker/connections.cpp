@@ -8,7 +8,7 @@
 #include <sstream>
 #include <iterator>
 
-Connections::Connections(std::map<int, Node*> *nodes){
+Connections::Connections(std::shared_ptr<std::map<int, std::shared_ptr<Node>>> nodes){
 	_connected_nodes = nodes;
 	_set = SDLNet_AllocSocketSet(20);
 }
@@ -28,7 +28,7 @@ void Connections::Close(){
 	log_info("Connections Manager closed");
 }
 
-void Connections::AddTaskManager(TaskManager *t){
+void Connections::AddTaskManager(std::shared_ptr<TaskManager> t){
 	_t = t;
 }
 
@@ -49,8 +49,8 @@ void Connections::_check_new_connections(){
 	TCPsocket node;
 	if( (node = SDLNet_TCP_Accept(_server)) ){
 		IPaddress *remote_ip = SDLNet_TCP_GetPeerAddress(node);
-		Node *newNode = new Node(_node_number, node, remote_ip);
-		_connected_nodes->insert(std::pair<int, Node*>(_node_number, newNode));
+		std::shared_ptr<Node> newNode(new Node(_node_number, node, remote_ip));
+		_connected_nodes->insert(std::pair<int, std::shared_ptr<Node>>(_node_number, newNode));
 		SDLNet_TCP_AddSocket(_set, newNode->Socket());
 		newNode->SetStatus(STATUS_UNKNOWN);
 		log_info("Node %d has connected: %x : %d", newNode->Id(), newNode->Host(), newNode->Port());
@@ -92,8 +92,8 @@ void Connections::_process_message(int id, std::vector<std::string> message){
 		case JOB_RESPONSE:
 			_t->JobResponse(id, message);
 			if( !_waiting_for_idle_node.empty() ){
-				Node *waiting_node = _waiting_for_idle_node.front();
-				Node *idle_node = _connected_nodes->at(id);
+				auto waiting_node = _waiting_for_idle_node.front();
+				auto idle_node = _connected_nodes->at(id);
 				SendMessage(waiting_node->Id(), BuildString("0x%x %d", idle_node->Host(), idle_node->RemotePort()));
 				_waiting_for_idle_node.pop();
 			}
@@ -113,7 +113,7 @@ void Connections::_process_message(int id, std::vector<std::string> message){
 			break;
 		case GET_IDLE_NODE:
 		{
-			Node *idle_node = _t->FindIdleNode();
+			auto idle_node = _t->FindIdleNode();
 			if( idle_node ){
 				SendMessage(id, BuildString("0x%x %d", idle_node->Host(), idle_node->RemotePort()));
 			} else {
@@ -156,7 +156,6 @@ void Connections::_disconnect_node(int id){
 	_t->NodeDisconnected(id);
 	auto node = _connected_nodes->at(id);
 	SDLNet_TCP_DelSocket(_set, node->Socket());
-	delete node;
 	_connected_nodes->erase(id);
 	log_info("Node %d disconnected", id);
 }

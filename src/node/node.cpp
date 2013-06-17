@@ -12,8 +12,14 @@ Node::Node(){
 	_client_socket = 0;
 }
 
-Node::~Node(){
+Node::~Node(){}
+
+void Node::Stop(){
 	SDLNet_TCP_Close(_node_socket);
+	SDLNet_TCP_Close(_broker_socket);
+	if( _client_socket ){
+		SDLNet_TCP_Close(_client_socket);
+	}
 	SDLNet_FreeSocketSet(_set);
 }
 
@@ -40,8 +46,7 @@ void Node::Start(int port, std::string broker_host, int broker_port){
 		if( _task ){
 			if( _task->isComplete() ){
 				std::string result = _task->Result();
-				delete _task;
-				_task = nullptr;
+				_task.release();
 			_send_message(_broker_socket, BuildString("%d 2 %s", JOB_RESPONSE, result.c_str()));
 			}
 		}
@@ -64,8 +69,7 @@ void Node::_check_new_connections(){
 		_send_message(_broker_socket, BuildString("%d ", SET_STATUS_ACTIVE));
 		log_info("Client has connected");
 		if( _task ){
-			delete _task;
-			_task = nullptr;
+			_task.release();
 		}
 	}
 }
@@ -128,7 +132,7 @@ void Node::_process_message(std::vector<std::string> message){
 			break;
 		case JOB_DATA:
 		{
-			_task = new Task(message[2], message[3]);
+			_task = std::unique_ptr<Task>(new Task(message[2], message[3]));
 			_task->Run();
 		}
 			break;
