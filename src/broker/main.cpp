@@ -17,7 +17,7 @@ int main(int argc, char* argv[]){
 	while ( (v = getopt (argc, argv, "p::n::h::")) != -1 ){
 		switch(v){
 			case 'p': port = atoi(optarg); break;
-			case 'n': max_noes = atoi(optarg); break;
+			case 'n': max_nodes = atoi(optarg); break;
 			case 'h': help = true; break;
 		}
 	}
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]){
 
 	SDLNet_Init();
 	std::shared_ptr<std::map<int, std::shared_ptr<Node>>> _node_map(new std::map<int, std::shared_ptr<Node>>);
-	std::shared_ptr<Connections> c(new Connections(_node_map));
+	std::shared_ptr<Connections> c(new Connections(_node_map, max_nodes));
 	std::shared_ptr<TaskManager> t(new TaskManager(_node_map));
 	c->AddTaskManager(t);
 	t->AddConnections(c);

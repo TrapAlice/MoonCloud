@@ -7,23 +7,21 @@
 int main(int argc, char* argv[]){
 	int target_port = -1;
 	std::string target_host = "localhost";
+	bool help = false;
 	int v;
 
-	while ( (v = getopt (argc, argv, "p:h::")) != -1 ){
+	while ( (v = getopt (argc, argv, "p:l::h::")) != -1 ){
 		switch(v){
-			case 'p':
-				target_port = atoi(optarg);
-				break;
-			case 'h':
-				target_host = optarg;
-				break;
+			case 'p': target_port = atoi(optarg); break;
+			case 'l': target_host = optarg; break;
+			case 'h': help = true; break;
 		}
 	}
 
-	if( target_port < 0 ){
+	if( target_port < 0 || help ){
 		std::cout << "Usage:"<<std::endl<<
-			"-p    Broker port    required"<<std::endl<<
-			"-h    Broker host    optional (default localhost)\n";
+			"-p    Target port    required\n"<<
+			"-l    Target host    optional (default localhost)\n";
 		exit(0); 
 	}
 
