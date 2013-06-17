@@ -4,6 +4,7 @@
 #include <queue>
 #include <string>
 #include <vector>
+#include <memory>
 
 class Node;
 class Task;
@@ -12,21 +13,21 @@ class Connections;
 
 class TaskManager{
 public:
-	TaskManager(std::map<int, Node*> *nodes);
+	TaskManager(std::shared_ptr<std::map<int, std::shared_ptr<Node>>> nodes);
 	~TaskManager();
 	void Tick();
-	void AddConnections(Connections *c);
+	void AddConnections(std::shared_ptr<Connections> c);
 	void AddJob(int sender, std::vector<std::string> data);
 	void JobResponse(int sender, std::vector<std::string> data);
 	void NodeDisconnected(int sender);
-	Node *FindIdleNode();
+	std::shared_ptr<Node> FindIdleNode();
 private:
-	std::map<int, Node*> *_connected_nodes;
-	std::queue<Task*> _queued_tasks;
-	std::map<int, TaskGroup*> _tasks;
+	std::shared_ptr<std::map<int, std::shared_ptr<Node>>> _connected_nodes;
+	std::queue<std::shared_ptr<Task>> _queued_tasks;
+	std::map<int, std::shared_ptr<TaskGroup>> _tasks;
 	int _task_group_id = 1;
-	std::map<int, Task*> _nodes_task;
-	Connections *_c;
+	std::map<int, std::shared_ptr<Task>> _nodes_task;
+	std::shared_ptr<Connections> _c;
 	
 	void _process_tasks();
 	void _job_accepted(int sender);

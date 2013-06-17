@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <queue>
+#include <memory>
 #include "SDL/SDL_net.h"
 
 class Node;
@@ -11,9 +12,9 @@ class TaskManager;
 
 class Connections{
 public:
-	Connections(std::map<int, Node*> *nodes);
+	Connections(std::shared_ptr<std::map<int, std::shared_ptr<Node>>> nodes);
 	~Connections();
-	void AddTaskManager(TaskManager *t);
+	void AddTaskManager(std::shared_ptr<TaskManager> t);
 	void Open(int port);
 	void Close();
 	void Tick();
@@ -23,11 +24,11 @@ private:
 	TCPsocket _server;
 	IPaddress _server_ip;
 	int _node_number = 1;
-	std::map<int, Node*> *_connected_nodes;
-	TaskManager *_t;
+	std::shared_ptr<std::map<int, std::shared_ptr<Node>>> _connected_nodes;
+	std::shared_ptr<TaskManager> _t;
 	SDLNet_SocketSet _set;
 	bool _shutdown = false;
-	std::queue<Node*> _waiting_for_idle_node;
+	std::queue<std::shared_ptr<Node>> _waiting_for_idle_node;
 
 	void _check_new_connections();
 	void _check_new_messages();
