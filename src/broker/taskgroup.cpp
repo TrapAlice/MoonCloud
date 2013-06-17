@@ -22,13 +22,6 @@ bool TaskGroup::isFull(){
 	return (int)_tasks.size() == _amount;
 }
 
-bool TaskGroup::isOwner(std::shared_ptr<Task> task){
-	for( auto t : _tasks ){
-		if( t == task ) return true;
-	}
-	return false;
-}
-
 bool TaskGroup::isComplete(){
 	if(!isFull()) return false;
 	for( auto t : _tasks ) {

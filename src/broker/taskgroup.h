@@ -11,7 +11,6 @@ public:
 	TaskGroup(int id, int client, int type, int amount);
 	bool AddTask(std::shared_ptr<Task> task);
 	bool isFull();
-	bool isOwner(std::shared_ptr<Task> task);
 	bool isComplete();
 	void Clear();
 	std::string Results();
