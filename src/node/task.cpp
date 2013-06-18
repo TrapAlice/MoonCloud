@@ -17,7 +17,7 @@ Task::~Task(){
 }
 
 void Task::Run(){
-	_task = popen(BuildString("%s %s", _file.c_str(), _data.c_str()).c_str(), "r");
+	_task = popen(moon::BuildString("%s %s", _file.c_str(), _data.c_str()).c_str(), "r");
 	_fileno = fileno(_task);
 	fcntl(_fileno, F_SETFL, O_NONBLOCK);
 }

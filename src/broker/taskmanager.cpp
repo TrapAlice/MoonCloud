@@ -32,7 +32,7 @@ void TaskManager::AddJob(int sender, std::vector<std::string> data){
 			std::shared_ptr<TaskGroup> newTaskGroup(new TaskGroup(_task_group_id, sender, 0, amount));
 			_tasks[_task_group_id] = newTaskGroup;
 			log_info("New task group from id:%d, task_group_id:%d, amount: %d", sender, _task_group_id, amount);
-			_c.lock()->SendMessage(sender, BuildString("%d %d ", JOB_ID, newTaskGroup->Id()));
+			_c.lock()->SendMessage(sender, moon::BuildString("%d %d ", JOB_ID, newTaskGroup->Id()));
 			++_task_group_id;
 		}
 			break;
@@ -40,7 +40,7 @@ void TaskManager::AddJob(int sender, std::vector<std::string> data){
 		{
 			auto taskGroup = _tasks[std::stoi(data[2])];
 			if( taskGroup ){
-				std::shared_ptr<Task> newTask(new Task(taskGroup->Id(), Pack(SplitFrom(2, data))));
+				std::shared_ptr<Task> newTask(new Task(taskGroup->Id(), moon::Pack(moon::SplitFrom(2, data))));
 				if( taskGroup->AddTask(newTask) ){
 					_queued_tasks.push(newTask);
 					log_info("New task from id:%d, task_group:%d added", sender, taskGroup->Id());
@@ -62,7 +62,7 @@ void TaskManager::JobResponse(int sender, std::vector<std::string> data){
 			_job_refused(sender);
 			break;
 		case 2://successful
-			_job_successful(sender, Pack(SplitFrom(2, data)));
+			_job_successful(sender, moon::Pack(moon::SplitFrom(2, data)));
 			break;
 		case 3://interrupted
 			_job_interrupted(sender);
@@ -77,7 +77,7 @@ void TaskManager::NodeDisconnected(int sender){
 void TaskManager::_job_accepted(int sender){
 	_connected_nodes->at(sender)->SetStatus(STATUS_BUSY);
 	auto task = _nodes_task[sender];
-	_c.lock()->SendMessage(sender, BuildString("%d %s ",JOB_DATA, task->Data().c_str()));
+	_c.lock()->SendMessage(sender, moon::BuildString("%d %s ",JOB_DATA, task->Data().c_str()));
 }
 
 void TaskManager::_job_refused(int sender){
@@ -97,7 +97,7 @@ void TaskManager::_job_successful(int sender, std::string result){
 		_nodes_task.erase(sender);
 		auto taskGroup = _tasks[task->Id()];
 		if( taskGroup->isComplete() ){
-			_c.lock()->SendMessage(taskGroup->Client(), BuildString("%d %s", JOB_RESULTS, taskGroup->Results().c_str()));
+			_c.lock()->SendMessage(taskGroup->Client(), moon::BuildString("%d %s", JOB_RESULTS, taskGroup->Results().c_str()));
 			_tasks.erase(task->Id());
 			taskGroup->Clear();
 		}
@@ -134,7 +134,7 @@ void TaskManager::_process_tasks(){
 		auto selected_node = FindIdleNode();
 		if( selected_node ){
 			_nodes_task[selected_node->Id()] = task;
-			_c.lock()->SendMessage(selected_node->Id(), BuildString("%d ", JOB_RESPONSE));
+			_c.lock()->SendMessage(selected_node->Id(), moon::BuildString("%d ", JOB_RESPONSE));
 			log_info("Assigning Task %d to node %d", task->Id(), selected_node->Id());
 		} else {
 			spareTasks.push(task);

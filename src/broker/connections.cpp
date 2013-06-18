@@ -42,7 +42,7 @@ void Connections::Tick(){
 
 void Connections::SendMessage(int id, std::string message){
 	debug("Message sent: %d:%s", id, message.c_str());
-	message = BuildString("%d %s", message.length(), message.c_str());
+	message = moon::BuildString("%d %s", message.length(), message.c_str());
 	SDLNet_TCP_Send(_connected_nodes->at(id)->Socket(), (void *)(message.c_str()), message.length());
 }
 
@@ -65,7 +65,7 @@ void Connections::_check_new_messages(){
 		if( SDLNet_SocketReady(node.second->Socket()) ){
 			memset(buffer, 0, 512);
 			if (SDLNet_TCP_Recv(node.second->Socket(), buffer, 512) > 0){
-				_process_message(node.first, Split(std::string(buffer)));
+				_process_message(node.first, moon::Split(std::string(buffer)));
 			} else {
 				_disconnect_node(node.first);
 			}
@@ -79,10 +79,10 @@ void Connections::_process_message(int id, std::vector<std::string> message){
 	if( message.size() == 0 ) return;
 	unsigned size = std::stoi(message[0]);
 	if( size == 0 ) return;
-	std::string temp_string = Pack(SplitFrom(1, message));
+	std::string temp_string = moon::Pack(moon::SplitFrom(1, message));
 	std::string remaining = size != temp_string.length()? temp_string.substr(size) : "";
-	message = Split(temp_string.substr(0,size));
-	debug("Message received: %d:%s", id, Pack(message).c_str());
+	message = moon::Split(temp_string.substr(0,size));
+	debug("Message received: %d:%s", id, moon::Pack(message).c_str());
 	switch(std::stoi(message[0])){
 		case DISCONNECT:
 			_disconnect_node(id);
@@ -121,10 +121,10 @@ void Connections::_process_message(int id, std::vector<std::string> message){
 			}
 			break;
 		default:
-			log_err("Unknown message: %d - %s", id, Pack(message).c_str());
+			log_err("Unknown message: %d - %s", id, moon::Pack(message).c_str());
 	}
 	if( remaining.size() > 1 ){
-		_process_message(id, Split(remaining));
+		_process_message(id, moon::Split(remaining));
 	}
 }
 
@@ -155,7 +155,7 @@ void Connections::_allocate_idle_node(){
 		auto idle_node = _t.lock()->FindIdleNode();
 		if( idle_node ){
 			auto waiting_node = _waiting_for_idle_node.front();
-			SendMessage(waiting_node->Id(), BuildString("0x%x %d", idle_node->Host(), idle_node->RemotePort()));
+			SendMessage(waiting_node->Id(), moon::BuildString("0x%x %d", idle_node->Host(), idle_node->RemotePort()));
 			_waiting_for_idle_node.pop();
 		}
 	}

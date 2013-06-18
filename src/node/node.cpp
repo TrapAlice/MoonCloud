@@ -32,7 +32,7 @@ void Node::Start(int port, std::string broker_host, int broker_port){
 	check(_broker_socket, "Error: %s", SDLNet_GetError());
 	SDLNet_TCP_AddSocket(_set, _broker_socket);
 	log_info("Connected to Broker");
-	_send_message(_broker_socket, BuildString("%d %d ", NEW_NODE, port));
+	_send_message(_broker_socket, moon::BuildString("%d %d ", NEW_NODE, port));
 
 	log_info("Opening connection for client");
 	check(SDLNet_ResolveHost(&_node_ip, NULL, port) != -1, "Error: %s", SDLNet_GetError());
@@ -49,7 +49,7 @@ void Node::Start(int port, std::string broker_host, int broker_port){
 			if( _task->isComplete() ){
 				std::string result = _task->Result();
 				_task.release();
-			_send_message(_broker_socket, BuildString("%d 2 %s", JOB_RESPONSE, result.c_str()));
+			_send_message(_broker_socket, moon::BuildString("%d 2 %s", JOB_RESPONSE, result.c_str()));
 			}
 		}
 		
@@ -68,7 +68,7 @@ void Node::_check_new_connections(){
 		_client_ip = SDLNet_TCP_GetPeerAddress(_client_socket);
 		SDLNet_TCP_AddSocket(_set, _client_socket);
 		_status = 2;
-		_send_message(_broker_socket, BuildString("%d ", SET_STATUS_ACTIVE));
+		_send_message(_broker_socket, moon::BuildString("%d ", SET_STATUS_ACTIVE));
 		log_info("Client has connected");
 		if( _task ){
 			_task.release();
@@ -81,7 +81,7 @@ void Node::_check_new_messages(){
 	memset(buffer, 0, 512);
 	if( SDLNet_SocketReady(_broker_socket) ){
 		if (SDLNet_TCP_Recv(_broker_socket, buffer, 512) > 0){
-			_process_message(Split(std::string(buffer)));
+			_process_message(moon::Split(std::string(buffer)));
 		} else {
 			log_info("Connection to Broker lost");
 			_shutdown = true;
@@ -89,14 +89,14 @@ void Node::_check_new_messages(){
 	} else if( _client_socket ) {
 		if( SDLNet_SocketReady(_client_socket) ){
 			if (SDLNet_TCP_Recv(_client_socket, buffer, 512) > 0){
-				_process_message(Split(std::string(buffer)));
+				_process_message(moon::Split(std::string(buffer)));
 			} else {
 				log_info("Connection to client lost");
 				SDLNet_TCP_DelSocket(_set, _client_socket);
 				SDLNet_TCP_Close(_client_socket);
 				_client_socket = 0;
 				_status = 0;
-				_send_message(_broker_socket, BuildString("%d ", SET_STATUS_IDLE));
+				_send_message(_broker_socket, moon::BuildString("%d ", SET_STATUS_IDLE));
 			}
 		}
 	}
@@ -107,10 +107,10 @@ void Node::_process_message(std::vector<std::string> message){
 	if( message.size() == 0 ) return;
 	unsigned size = std::stoi(message[0]);
 	if( size == 0 ) return;
-	std::string temp_string = Pack(SplitFrom(1, message));
+	std::string temp_string = moon::Pack(moon::SplitFrom(1, message));
 	std::string remaining = size < temp_string.length()? temp_string.substr(size) : "";
-	message = Split(temp_string.substr(0,size));
-	debug("Message received: %s", Pack(message).c_str());
+	message = moon::Split(temp_string.substr(0,size));
+	debug("Message received: %s", moon::Pack(message).c_str());
 	if( message.size() == 0 ) return;
 	switch( std::stoi(message[0]) ){
 		case JOB_REQUEST:
@@ -121,9 +121,9 @@ void Node::_process_message(std::vector<std::string> message){
 		case JOB_RESPONSE:
 		{
 			if( _status == 0 ){
-				_send_message(_broker_socket, BuildString("%d 0 ", JOB_RESPONSE));
+				_send_message(_broker_socket, moon::BuildString("%d 0 ", JOB_RESPONSE));
 			} else {
-				_send_message(_broker_socket, BuildString("%d 1 ", JOB_RESPONSE));
+				_send_message(_broker_socket, moon::BuildString("%d 1 ", JOB_RESPONSE));
 			}
 		}
 			break;
@@ -140,23 +140,23 @@ void Node::_process_message(std::vector<std::string> message){
 			break;
 		case JOB_RESULTS:
 		{
-			_send_message(_client_socket, Pack(SplitFrom(1, message)));
+			_send_message(_client_socket, moon::Pack(moon::SplitFrom(1, message)));
 		}
 			break;
 		default:
-			log_err("Unknown message: %s", Pack(message).c_str());
+			log_err("Unknown message: %s", moon::Pack(message).c_str());
 	}
 	if( remaining.size() > 1 ){
-		_process_message(Split(remaining));
+		_process_message(moon::Split(remaining));
 	}
 }
 
 void Node::_send_message(TCPsocket to, std::string message){
 	debug("Message sent: %s", message.c_str());
-	message = BuildString("%d %s", message.length(), message.c_str());
+	message = moon::BuildString("%d %s", message.length(), message.c_str());
 	SDLNet_TCP_Send(to, (void *)(message.c_str()), message.length());
 }
 
 void Node::_forward_message(TCPsocket to, std::vector<std::string> message){
-	_send_message(to, Pack(message));
+	_send_message(to, moon::Pack(message));
 }

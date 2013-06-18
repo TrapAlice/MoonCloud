@@ -22,8 +22,8 @@ void Client::OpenConnection(std::string host, int port){
 
 void Client::GetIdleNode(){
 	log_info("Requesting idle node");
-	_send_message(BuildString("%d ", GET_IDLE_NODE));
-	std::vector<std::string> idle_node = Split(_receive_message());
+	_send_message(moon::BuildString("%d ", GET_IDLE_NODE));
+	std::vector<std::string> idle_node = moon::Split(_receive_message());
 	SDLNet_TCP_Close(_node_socket);
 	struct in_addr addr;inet_aton(idle_node[1].c_str(), &addr);
 	SDLNet_ResolveHost(&_node_ip, inet_ntoa(addr), std::stoi(idle_node[2]));
@@ -31,17 +31,17 @@ void Client::GetIdleNode(){
 }
 
 int Client::GetJobId(int amount, int type){
-	_send_message(BuildString("%d 0 %d %d ", JOB_REQUEST, amount, type));
-	auto jobId=Split(_receive_message());
+	_send_message(moon::BuildString("%d 0 %d %d ", JOB_REQUEST, amount, type));
+	auto jobId=moon::Split(_receive_message());
 	return std::stoi(jobId[2]);
 }
 
 void Client::ProcessTask(int jobId, std::string file, std::string data){
-	_send_message(BuildString("%d 1 %d %s %s", JOB_REQUEST, jobId, file.c_str(), data.c_str()));
+	_send_message(moon::BuildString("%d 1 %d %s %s", JOB_REQUEST, jobId, file.c_str(), data.c_str()));
 }
 
 std::string Client::GetResults(){
-	return Pack(SplitFrom(1,Split(_receive_message())));
+	return moon::Pack(moon::SplitFrom(1,moon::Split(_receive_message())));
 }
 
 void Client::CloseConnection(){
@@ -60,6 +60,6 @@ std::string Client::_receive_message(){
 
 void Client::_send_message(std::string message){
 	debug("Message sent: %s", message.c_str());
-	message = BuildString("%d %s", message.length(), message.c_str());
+	message = moon::BuildString("%d %s", message.length(), message.c_str());
 	SDLNet_TCP_Send(_node_socket, (void *)(message.c_str()), message.length());
 }

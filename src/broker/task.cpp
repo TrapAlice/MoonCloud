@@ -1,5 +1,4 @@
 #include "task.h"
-#include "node.h"
 
 Task::Task(int id, std::string data){
 	_id = id;

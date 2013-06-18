@@ -1,6 +1,8 @@
 #include "util.h"
 #include <stdarg.h>
 
+namespace moon{
+
 std::string Pack(std::vector<std::string> v){
 	std::string result;
 	for( auto s : v ){
@@ -42,4 +44,6 @@ std::string BuildString(std::string s, ...){
 	std::string result(text);
 	delete text;
 	return result;
+}
+
 }
