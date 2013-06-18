@@ -123,7 +123,12 @@ void Node::_process_message(std::vector<std::string> message){
 			_forward_message(_client_socket, message);
 			break;
 		case JOB_DATA:
-			_task = std::unique_ptr<Task>(new Task(message[2], message[3]));
+			if( message.size()>3 ){
+				_task = std::unique_ptr<Task>(new Task(message[2], message[3]));
+			} else {
+				_task = std::unique_ptr<Task>(new Task(message[2], ""));
+			}
+			
 			_task->Run();
 			break;
 		case JOB_RESULTS:
