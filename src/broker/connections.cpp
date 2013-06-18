@@ -41,9 +41,13 @@ void Connections::Tick(){
 }
 
 void Connections::SendMessage(int id, std::string message){
-	debug("Message sent: %d:%s", id, message.c_str());
-	message = moon::BuildString("%d %s", message.length(), message.c_str());
-	SDLNet_TCP_Send(_connected_nodes->at(id)->Socket(), (void *)(message.c_str()), message.length());
+	if( _connected_nodes->count(id) ){
+		debug("Message sent: %d:%s", id, message.c_str());
+		message = moon::BuildString("%d %s", message.length(), message.c_str());
+		SDLNet_TCP_Send(_connected_nodes->at(id)->Socket(), (void *)(message.c_str()), message.length());
+	} else {
+		log_warn("Attempted to send message to invalid id: %d", id);
+	}
 }
 
 void Connections::_check_new_connections(){
@@ -110,6 +114,7 @@ void Connections::_process_message(int id, std::vector<std::string> message){
 			break;
 		case GET_IDLE_NODE:
 			_waiting_for_idle_node.push(_connected_nodes->at(id));
+			_allocate_idle_node();
 			break;
 		case CLOSE:
 			_shutdown = true;

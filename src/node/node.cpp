@@ -106,8 +106,8 @@ void Node::_check_new_messages(){
 void Node::_process_message(std::vector<std::string> message){
 	if( message.size() == 0 ) return;
 	unsigned size = std::stoi(message[0]);
-	if( size == 0 ) return;
 	std::string temp_string = moon::Pack(moon::SplitFrom(1, message));
+	if( size == 0 || size > temp_string.length()+1 ) return;
 	std::string remaining = size < temp_string.length()? temp_string.substr(size) : "";
 	message = moon::Split(temp_string.substr(0,size));
 	debug("Message received: %s", moon::Pack(message).c_str());
