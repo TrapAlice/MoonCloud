@@ -29,4 +29,5 @@ private:
 	void _process_message(std::vector<std::string> message);
 	void _send_message(TCPsocket to, std::string message);
 	void _forward_message(TCPsocket to, std::vector<std::string> message);
+	void _disconnect_client();
 };

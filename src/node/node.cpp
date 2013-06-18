@@ -10,6 +10,7 @@
 Node::Node(){
 	_set = SDLNet_AllocSocketSet(2);
 	_client_socket = 0;
+	_status = 0;
 }
 
 Node::~Node(){}
@@ -24,7 +25,6 @@ void Node::Stop(){
 }
 
 void Node::Start(int port, std::string broker_host, int broker_port){
-	_status = 0;
 	log_info("Starting up node");
 	log_info("Connecting to Broker");
 	check(SDLNet_ResolveHost(&_broker_ip, broker_host.c_str(), broker_port) != -1, "Error: %s", SDLNet_GetError());
@@ -92,11 +92,7 @@ void Node::_check_new_messages(){
 				_process_message(moon::Split(std::string(buffer)));
 			} else {
 				log_info("Connection to client lost");
-				SDLNet_TCP_DelSocket(_set, _client_socket);
-				SDLNet_TCP_Close(_client_socket);
-				_client_socket = 0;
-				_status = 0;
-				_send_message(_broker_socket, moon::BuildString("%d ", SET_STATUS_IDLE));
+				_disconnect_client();
 			}
 		}
 	}
@@ -114,34 +110,27 @@ void Node::_process_message(std::vector<std::string> message){
 	if( message.size() == 0 ) return;
 	switch( std::stoi(message[0]) ){
 		case JOB_REQUEST:
-		{
 			_forward_message(_broker_socket, message);
-		}
 			break;
 		case JOB_RESPONSE:
-		{
 			if( _status == 0 ){
 				_send_message(_broker_socket, moon::BuildString("%d 0 ", JOB_RESPONSE));
 			} else {
 				_send_message(_broker_socket, moon::BuildString("%d 1 ", JOB_RESPONSE));
 			}
-		}
 			break;
 		case JOB_ID:
-		{
 			_forward_message(_client_socket, message);
-		}
 			break;
 		case JOB_DATA:
-		{
 			_task = std::unique_ptr<Task>(new Task(message[2], message[3]));
 			_task->Run();
-		}
 			break;
 		case JOB_RESULTS:
-		{
 			_send_message(_client_socket, moon::Pack(moon::SplitFrom(1, message)));
-		}
+			break;
+		case NEW_NODE:
+			_disconnect_client();
 			break;
 		default:
 			log_err("Unknown message: %s", moon::Pack(message).c_str());
@@ -159,4 +148,12 @@ void Node::_send_message(TCPsocket to, std::string message){
 
 void Node::_forward_message(TCPsocket to, std::vector<std::string> message){
 	_send_message(to, moon::Pack(message));
+}
+
+void Node::_disconnect_client(){
+	SDLNet_TCP_DelSocket(_set, _client_socket);
+	SDLNet_TCP_Close(_client_socket);
+	_client_socket = 0;
+	_status = 0;
+	_send_message(_broker_socket, moon::BuildString("%d ", SET_STATUS_IDLE));
 }
